@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <?!= include('jquery.min'); ?>
+    <?!= include('input_mask'); ?>
+    <?!= include('table_css'); ?>
+    <?!= include('w3css'); ?>
+    <?!= include('datepicker'); ?>
+    <?var url = getScriptUrl();?>
+  </head>
+  <body>
+    <div class="header w3-container"> 
+      <h2>Добавление сотрудника</h2>
+        <div class="w3-bar">
+           <a href='<?=url?>?page=main&title=Бюджет' class="w3-bar-item w3-button w3-margin-bottom w3-teal">На главную</a>
+        </div>
+    </div>
+    <div class="main w3-container">
+    
+      <div class="form-container w3-container w3-card-2 w3-padding-32 w3-white w3-quarter">
+        <form id="employeeForm">
+          <select id="mode-select" class="w3-select w3-margin-bottom" name="mode" style="width:50%">
+            <option>Разработка</option>
+            <option>Тестирование</option>
+          </select><br>
+          <lable for="name">Полное имя</lable>
+          <input id="name" name="name" type="text" class="w3-input w3-border w3-margin-bottom"/>
+          <lable for="phone">Телефон</lable>
+          <input id="phone" name="phone" type="text" placeholder="+7(000) 000-0000" class="w3-input w3-border w3-margin-bottom"/>
+          <lable for="department">Отдел</lable>
+          <select id="department" name="department" class="w3-input w3-margin-bottom">
+            <option value="opt">Выберите отдел</option>
+          </select>
+          <input id="sendBtn" type="button" value="Отправить" class="w3-button w3-teal w3-medium w3-margin-bottom" onClick="send(this.form)"/>
+        </form>
+        <div class="info-panel">
+          <div id="create_message">&nbsp;</div>
+        </div>
+      </div>
+      
+      <div class="edit-panel w3-container w3-threequarter">
+        <div id="table-container">
+          Идет загрузка таблицы ...
+        </div>
+        
+        <div class="info-panel">
+          <div id="edit_message"></div>
+        </div>
+        
+        <div id="time-modal" class="w3-modal">
+          <div class="w3-modal-content w3-padding-bottom"  style="width: 50%">
+              
+            <div class="w3-container">
+              <div class="spring">&nbsp;</div>
+              <span onclick="showCloseModal('none')" class="w3-button w3-display-topright w3-red">&times;</span>
+            </div>
+            
+            <div class="w3-container">
+                <lable for="delete_date">Введите дату удаления</lable>
+                <input id="delete_date" name="delete_date" class="w3-input w3-border w3-margin-bottom" type="text" style="width: 165px" readonly/>    
+            </div>
+            
+            <div class="confirm-date w3-container">
+                <button id="okBtn" class="w3-button w3-green">Ok</button>
+                <button id="cancelBtn" class="w3-button w3-red">Cancel</button>
+            </div>
+            
+            <div id="date_alert" class="w3-container" style="color: red;">&nbsp;</div>
+            <div class="spring">&nbsp;</div>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+    <script>
+      var mode = document.querySelector('#mode-select'),
+          table_value = [],
+          params;
+      /*
+        Формирование выпадающего списка отделов
+      */      
+      google.script.run.withSuccessHandler(addDepSelect).getDepartmentList(mode.value, 'department');
+      
+      mode.addEventListener('change', function(event){
+        google.script.run.withSuccessHandler(addDepSelect).getDepartmentList(mode.value, 'department');
+      });
+      
+      /*
+        Маска для телефона
+        TODO: маска для 'ЗП'
+      */
+      $(":input").inputmask();
+      $("#phone").inputmask({'mask': '+7(999) 999-9999'});
+    
+      //Callback
+      function addDepSelect(depList){
+        if(depList.length > 0){
+          var select = document.querySelector("#department"),
+              depStr = '<option value="opt">Выберите отдел</option>',
+              i = 0;
+              
+          for(i; i < depList.length; i++) {
+            depStr += '<option value="'+ depList[i].id +'">' + depList[i].name + '</option>';
+          }
+          select.innerHTML = depStr;
+        }
+      }
+      
+      function send(form){
+
+        var note = {
+          mode: form.mode.value,
+          name: form.name.value,
+          phone: form.phone.value,
+          department: form.department.value,
+        };
+          
+        console.log(note);
+        document.querySelector('#sendBtn').disabled = true;
+        try {
+          google.script.run.withSuccessHandler(onCreateSuccess).addEmployee(note);
+        } catch (e) {
+          alert(e);
+        }
+      }
+      
+/*
+  Callback вывод сообщения статуса (успех/неуспех) - после отправки addEmployee()
+*/
+      function onCreateSuccess(message){
+        var createMessage = document.querySelector('#create_message');
+        if(message == 'Success') {
+          showMessage(createMessage, 'Запись успешно добавлена!','green');
+          resetInput();
+          getTableValue();
+        } else {
+          showMessage(createMessage, message, 'red');
+        }    
+        
+        document.querySelector("#sendBtn").disabled = false;
+      }
+      
+      function showMessage(messageContainer, message, color){
+        messageContainer.style.color = color;
+        messageContainer.innerText = message;
+      }   
+      
+      function resetInput(){
+        document.querySelector("#employeeForm").reset();
+      }
+    </script>
+    <script>
+     
+     getTableValue();
+     $("#delete_date").datepicker({
+        autoClose: true,
+        dateFormat: 'dd.mm.yyyy',
+        todayButton: true
+      });
+      
+      $('#delete_date').datepicker({
+        todayButton: new Date()
+      })
+      
+      document.querySelector('.confirm-date').addEventListener('click', setDate);
+               
+      function getTableValue(){
+      console.log(mode.value);
+         google.script.run.withSuccessHandler(renderTable).getEmplTable(mode.value);
+      }   
+   
+      function renderTable(_table_value){
+        console.log(table_value);
+        table_value = _table_value;
+        var table_container = document.getElementById('table-container'),
+            html = '',
+            i = 0,
+            input_name = '',
+            input_phone = '',
+            options_dep = document.querySelector('#department').innerHTML,
+            select_dep = '',
+            coordinate = '';
+        
+        html +='<table class="w3-table-all w3-centered">' +
+            '<thead><tr class="w3-light-grey"><th>#</th><th>Сотрудник</th><th>Телефон</th><th>Отдел</th><th>Редактировать</th></thead><tbody>';
+            
+        for(i = 0; i < table_value.length; i++) {
+          input_name = '<input class="w3-input edit-name" type=text value="' + table_value[i].name + '" readonly>';
+          input_phone = '<input class="w3-input edit-phone" type=text value="' + table_value[i].phone + '" readonly>';
+          select_dep = '<select class="w3-input" disabled>' + options_dep + '</select>';
+          coordinate = i + '-' + table_value[i].id + '-' + table_value[i].row;
+          
+          html += '<tr><td>' + (i + 1) + '</td>' +
+            '<td>' + input_name + '</td>' +
+            '<td>' + input_phone + '</td>' +
+            '<td>' + select_dep + '</td>' +
+            '<td class="edit-cell">' +
+              '<div class="edit-container">' +
+              '<button class="edit-button" value="' + i + '">✎</button>' + 	
+              '<button class="delete-button" value="' + coordinate + '">✖</button></div>' +
+              '<div class="prompt-container"  style="display: none;">' +
+              '<button class="save-button save" value="' + coordinate + '">✔</button>' +
+              '<button class="cancel-button cancel" value="' + i + '">✘</button></div></td></tr>';
+          
+        }
+        
+        html += '</tbody></table>';
+   
+        table_container.innerHTML = html;
+        
+        $('table td .edit-phone').inputmask({'mask': '+7(999) 999-9999'});
+        
+        var rows = document.querySelectorAll('td select');
+        
+        for(i = 0; i < rows.length; i++){
+          rows[i].value = table_value[i].dep_id;
+        }
+        
+        createObserver(table_container);
+      }   
+      
+       function createObserver(table){
+         
+         var i = 0,
+            edit_cell = table.querySelectorAll('.edit-cell'),
+            head =  document.querySelectorAll('tr th'),
+            empHead = head[1],
+            depHead = head[3];
+          
+          empHead.onclick = function(){
+            renderTable(table_value.sort(compareByName));
+          };
+          
+          depHead.onclick = function(){
+            renderTable(table_value.sort(compareByDep));
+          };
+
+          for(i = 0; i < edit_cell.length; i++ ){
+            edit_cell[i].addEventListener('click', function(event){
+              var row_num;
+                  
+              if(event.target.classList.contains('edit-button')){
+              
+                row_num = event.target.value;
+                changeInput(row_num, false, '#ecffe6', 'none', 'inline-block');
+                blockOtherRows(row_num);
+              }
+              if(event.target.classList.contains('cancel-button')){
+              
+                row_num = event.target.value;
+                cancelInput(row_num);
+                changeInput(row_num, true, 'transparent', 'inline', 'none');
+                blockOtherRows();
+              }
+              if(event.target.classList.contains('save-button')){
+                
+                params = event.target.value.split('-');
+                saveInput(params);
+                changeInput(params[0], true, 'transparent', 'inline', 'none');
+                blockOtherRows();
+              }
+              if(event.target.classList.contains('delete-button')){
+              
+                if(confirm("Вы точно хотите удалить отдел?")) {
+                  params = event.target.value.split('-');
+                  
+                  showCloseModal('block');
+                  console.log('showModal');           
+                }
+              }
+            });
+          }
+      }
+      
+      function blockOtherRows(row_num){
+        var rows = document.querySelectorAll('tbody tr .edit-container'),
+            i = 0, buttons;
+        
+        if(row_num) {
+          
+          for(i = 0; i < rows.length; i++){
+            buttons = rows[i].querySelectorAll('button');
+            buttons[0].disabled = true;
+            buttons[1].disabled = true;
+          }
+        } 
+        else {
+          for(i = 0; i < rows.length; i++){
+            buttons = rows[i].querySelectorAll('button');
+            buttons[0].disabled = false;
+            buttons[1].disabled = false;
+          }
+        }
+      }
+      
+      function cancelInput(row_num){
+        var row =  document.querySelectorAll('tbody tr')[row_num],
+            input = row.querySelectorAll('input'),
+            select = row.querySelector('select');
+            
+        input[0].value = table_value[row_num].name; 
+        input[1].value = table_value[row_num].phone;
+        select.value = table_value[row_num].dep_id;
+      }
+      
+      function changeInput(row_num, read, color, dspl_edit, dspl_prompt){
+
+        var current_row = document.querySelectorAll('tbody tr')[row_num],
+            input = current_row.querySelectorAll('input'),
+            prompt_ = current_row.querySelector('.prompt-container'),
+            edit = current_row.querySelector('.edit-container'),
+            select = current_row.querySelector('select');
+      
+        input[0].readOnly = read;
+        input[0].style.backgroundColor = color;
+        input[1].readOnly = read;
+        input[1].style.backgroundColor = color;
+        select.disabled = read;
+        edit.style.display = dspl_edit;
+        prompt_.style.display = dspl_prompt;
+      }
+      
+      function showCloseModal(type){
+        document.getElementById('time-modal').style.display = type;
+      }
+      
+      function saveInput(params){
+        var row_num = params[0],
+            id = params[1],
+            s_row = params[2], // s_row - sheet row in google sheet doc
+            row =  document.querySelectorAll('tbody tr')[row_num],
+            input = row.querySelectorAll('input'),
+            select = row.querySelector('select');
+           
+            
+        var mode = document.getElementById('mode-select').value,
+            employee_info = {
+              mode: mode,
+              name: input[0].value,
+              phone: input[1].value,
+              department: select.value,
+              row: s_row
+            };
+        
+        table_value[row_num].name = employee_info.name;
+        table_value[row_num].dep_id = employee_info.department;
+        
+        google.script.run.withSuccessHandler(onEditSuccess).saveEmployee(employee_info);
+      }
+      
+      function onEditSuccess(message){
+        var editMessage = document.querySelector("#edit_message");
+        if(message.type == 'Success') {
+          showMessage(editMessage, message.text,'green');
+        } else {
+          showMessage(editMessage, message.text, 'red');
+          alert(message);
+        }    
+      }
+      
+      function setDate(event){
+       
+        console.log('setDate',params, event.target);
+        
+        if(event.target.id == 'okBtn'){
+          
+          var date = document.getElementById('delete_date').value;
+          
+          if(date == '') {
+            document.getElementById('date_alert').innerHTML = 'Выберите дату!';
+          }
+          else if(date.length < 9) {
+            document.getElementById('date_alert').innerHTML = 'Неверный формат даты!';
+          } 
+          else {
+            showCloseModal('none');
+            deleteEmployee(date);
+          }
+        }
+        
+        if(event.target.id == 'cancelBtn'){
+          showCloseModal('none');
+          params = [];
+        }
+      }
+      
+      function deleteEmployee(date){
+        if(params.length == 0) return;
+      
+        var row_num = params[0],
+            id = params[1],
+            s_row = params[2], // s_row - sheet row in google sheet doc
+            current_row = document.querySelectorAll('tbody tr')[row_num],
+            input = current_row.querySelectorAll('input');
+                   
+        var mode = document.getElementById('mode-select').value,
+            department_info = {
+              id: table_value[row_num].id,
+              mode: mode,
+              date: date,
+              name: input[0].value,
+              row: s_row
+            };
+       
+        console.log('Remove!');
+        google.script.run.withSuccessHandler(onEditSuccess).deleteEmployee(department_info);
+        params = [];
+        getTableValue();
+      }
+    
+    </script>
+  </body>
+</html>
+
+

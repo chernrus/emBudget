@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <?!= include('jquery.min'); ?>
+    <?!= include('datepicker'); ?>
+    <?!= include('input_mask'); ?>
+    <?!= include('w3css'); ?>
+    <?var url = getScriptUrl();?>
+  </head>
+  <body>
+    <div class="header w3-container"> 
+      <h2>Рабочие дни в году по месяцам</h2>
+      <div class="w3-bar">
+        <a href='<?=url?>?page=main&title=Бюджет' class="w3-bar-item w3-button w3-margin-bottom w3-teal">На главную</a>
+      </div>
+    </div>
+    <div class="w3-row">
+      <div class="form-container w3-container w3-card-2 w3-padding-32 w3-white w3-third" style="width:400px">
+        <form id="wdForm">
+          <lable for="year">Год</lable>
+          <input id="year-datepicker" name="year" type="text" class="w3-input w3-border w3-margin-bottom"/>
+          <lable for="month">Месяц</lable>
+          <select id="month" name="month" class="w3-select w3-margin-bottom">
+            <option value="1">Январь</option>
+            <option value="2">Февраль</option>
+            <option value="3">Март</option>
+            <option value="4">Апрель</option>
+            <option value="5">Май</option>
+            <option value="6">Июнь</option>
+            <option value="7">Июль</option>
+            <option value="8">Август</option>
+            <option value="9">Сентябрь</option>
+            <option value="10">Октябрь</option>
+            <option value="11">Ноябрь</option>
+            <option value="12">Декабрь</option>
+          </select>
+          <lable for="count">Количество дней</lable>
+          <input id="count" name="count" type="number" class="w3-input w3-border w3-margin-bottom"/>
+          <input id="sendBtn" type="button" value="Добавить" class="w3-button w3-teal w3-medium w3-margin-bottom" onClick="send(this.form)"/>
+        </form>
+        
+        <div class="info-panel">
+          <div id="message"></div>
+        </div>
+      </div>
+      
+      <div class="info-container w3-container w3-twothird">
+        <table class="wd-in-year w3-table-all">
+          <tr class="wd-head">
+            <th>#</th>
+            <th>Месяц</th>
+            <th>Рабочие дни</th>
+          </tr>
+        </table>
+      </div>
+    </div>
+    <script>
+      
+      var currentYear = new Date(),
+          yearInput = document.getElementById("year-datepicker"), 
+          messageContainer = document.querySelector('#message');
+      
+      yearInput.value = currentYear.getFullYear();
+      
+      google.script.run.withSuccessHandler(loadTable).getData(yearInput.value);
+      
+      $(document).ready(function(){
+        $("#year-datepicker").inputmask("2099",{ "oncomplete": function(){
+          messageContainer.textContent = '';
+          google.script.run.withSuccessHandler(loadTable).getData(yearInput.value);
+        }});
+      });
+      
+      function loadTable(data){
+        console.log(data);
+        if(data == 'error') {
+          onSuccess('Год является недопустимым значением!');
+          return;
+        }
+        var table = document.querySelector('.wd-in-year'),
+            str = '<tr class="wd-head"><th>#</th><th>Месяц</th><th>Рабочие дни</th></tr>',
+            i = 0;
+        for(i = 0; i < data.length; i++) {
+          str += '<tr><td>' + data[i][0] + '</td><td>' + data[i][1] + '</td><td>' + data[i][2] + '</td></tr>';
+        }
+        
+        table.innerHTML = str;
+      }
+    
+      function send(form){
+        var note = {
+          id: form.month.value,
+          count: form.count.value,
+          year: form.year.value
+        };
+        document.querySelector("#sendBtn").disabled = true;
+        google.script.run.withSuccessHandler(onSuccess).addDaysCount(note);
+      }
+    
+      function onSuccess(message){
+        if(message == 'Success') {
+          showMessage('Запись успешно добавлена!','green');
+          resetInput();
+        } else {
+          showMessage(message, 'red');
+        }    
+        
+        document.querySelector("#sendBtn").disabled = false;
+      }
+      
+      function showMessage(message, color){
+        console.log(message);
+        messageContainer.style.color = color;
+        messageContainer.textContent = message;
+      }
+      
+      function resetInput(){
+          google.script.run.withSuccessHandler(loadTable).getData(yearInput.value);
+      }
+    </script>
+  </body>
+</html>
+
+

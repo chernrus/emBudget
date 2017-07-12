@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <?!= include('jquery.min'); ?>
+    <title>Обеспечение контрактов</title>
+    <?!= include('table_css'); ?>
+    <?!= include('w3css'); ?>
+    <?!= include('chosen'); ?>
+    <?var url = getScriptUrl();?>
+  </head>
+  <body>
+    <div class="header w3-container"> 
+      <h3>Обеспечение контрактов</h3>
+      <div class="w3-bar">
+         <a href='<?=url?>?page=main&title=Бюджет' class="w3-bar-item w3-button w3-margin-bottom w3-teal">На главную</a>
+      </div>
+    </div>
+    <div class="main-container w3-container">
+      <div class="form-container w3-container w3-card-2 w3-padding-32 w3-white w3-quarter">
+        <form id="provisionForm">
+          <select id="modeSelect" class="w3-select w3-margin-bottom" name="mode" style="width:50%">
+            <option>Разработка</option>
+            <option>Тестирование</option>
+          </select><br>
+          <label for="ncontract">№ Контракта</label>
+          <!-- <input id="ncontract" name="ncontract" type="text" class="w3-input w3-border w3-margin-bottom"/> -->
+          <select id="ncontract" name="ncontract" class="w3-select w3-margin-bottom"></select>
+          <!--<div class="clearfix w3-margin-bottom"></div>-->
+          <label for="project" class="w3-margin-top">Проект</label>
+          <select id="project" name="project" class="w3-select w3-margin-bottom">
+            <option value="opt">Выберите проект</option>
+          </select>
+          <label for="planTime">Планируемые трудозатраты по проекту</label>
+          <input id="planTime" name="planTime" type="number" class="w3-input w3-border w3-margin-bottom"/>
+          <label for="projectCost">Сумма затрат по проекту</label>
+          <input id="projectCost" name="projectCost" type="number" class="w3-input w3-border w3-margin-bottom"/>
+          <input id="sendBtn" type="button" value="Отправить" class="w3-button w3-teal w3-medium w3-margin-bottom" onClick="send(this.form)"/>
+        </form>
+        <div class="info-panel">
+          <div id="create_message"></div>
+        </div>
+      </div>
+      <div class="edit-panel w3-threequarter">
+      
+        <div id="table-container">
+          Идет загрузка таблицы ...
+        </div>
+        <div class="info-panel">
+          <div id="edit_message"></div>
+        </div>
+        
+        <div id="time-modal" class="w3-modal">
+          <div class="w3-modal-content w3-padding-bottom"  style="width: 50%">
+          
+            <div class="w3-container">
+              <div class="spring">&nbsp;</div>
+              <span onclick="showCloseModal('none')" class="w3-button w3-display-topright w3-red">&times;</span>
+            </div>
+          
+            <div class="w3-container">
+              <lable for="delete_date">Введите дату удаления</lable>
+              <input id="delete_date" name="delete_date" class="w3-input w3-border w3-margin-bottom" type="text" style="width: 165px" readonly/>    
+            </div>
+            <div class="confirm-date w3-container">
+              <button id="okBtn" class="w3-button w3-green">Ok</button>
+              <button id="cancelBtn" class="w3-button w3-red">Cancel</button>
+            </div>
+          
+            <div id="date_alert" class="w3-container" style="color: red;">&nbsp;</div>
+            <div class="spring">&nbsp;</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script defer>
+      var mode = document.querySelector('#modeSelect'),
+          contractsData = document.getElementById('ncontract');
+      
+      init();
+      
+      mode.addEventListener('change', function(event){
+        init();
+      });
+      
+      function init(){
+        google.script.run.withSuccessHandler(addContracts).getList(mode.value, 'contract');
+        google.script.run.withSuccessHandler(addProjectSelect).getList(mode.value, 'project');
+      }  
+           
+      //Callback
+      function addProjectSelect(projectList){
+        var select = document.querySelector("#project"),
+            str = '<option value="opt">Выберите проект</option>',
+            i = 0;
+              
+        for(i; i < projectList.length; i++) {
+          str += '<option value="' + projectList[i].id + '">' + projectList[i].name + '</option>';
+        }
+        select.innerHTML = str;
+       
+      }
+      
+      function addContracts(contractList){
+        var str = '<option value="opt">Выберите контракт</option>',
+            i = 0;
+              
+        for(i; i < contractList.length; i++) {
+          str += '<option value="' + contractList[i].id + '">' + contractList[i].name + '</option>';
+        }
+        contractsData.innerHTML = str;
+         $("#ncontract").chosen({});
+      }
+    
+      function send(form){
+      console.log(document.getElementById('ncontract_chosen'));
+      console.log(form.ncontract.value);
+        var note = {
+          mode: form.mode.value,
+          ncontract: form.ncontract.value,
+          projectId: form.project.value,
+          planTime: form.planTime.value,
+          projectCost: form.projectCost.value,
+        };
+        
+        console.log(note);
+        
+        document.querySelector("#sendBtn").disabled = true;
+        google.script.run.withSuccessHandler(onCreateSuccess).addProvision(note);
+      }
+      
+/*
+  Callback вывод сообщения статуса (успех/неуспех) - после отправки addEmployee()
+*/      
+      function onCreateSuccess(message){
+        var createMessage = document.querySelector('#create_message');
+        if(message == 'Success') {
+          showMessage(createMessage, 'Запись успешно добавлена!','green');
+          resetInput();
+        } 
+        else {
+          showMessage(createMessage, message, 'red');
+        }    
+      
+        document.querySelector("#sendBtn").disabled = false;
+      }
+      
+      function showMessage(messageContainer, message, color){
+        messageContainer.style.color = color;
+        messageContainer.innerText = message;
+      }
+      
+      function resetInput(){
+//        getTableValue();
+        document.querySelector("#provisionForm").reset();
+        $("#ncontract").trigger("chosen:updated");
+      }
+    </script>
+    
+    <script>
+      getTableValue();
+      
+      var table_value = [], params = [];
+      
+      function getTableValue(){
+        var mode = document.getElementById('modeSelect').value;
+        google.script.run.withSuccessHandler(renderTable).getProvisionTable(mode);
+      }
+      
+      function renderTable(_table_value){
+        table_value = _table_value;
+        
+        console.log(table_value);
+        
+        var table_container = document.getElementById('table-container'),
+            html = '',
+            i = 0,
+            select_contract = '',
+            select_project = '',
+            input_time = '',
+            input_cost = '',
+            coordinate = '',
+            options_contracts = document.getElementById('ncontract').innerHTML,
+            options_projects = document.getElementById('project').innerHTML;    
+         
+         html +='<table class="w3-table-all w3-centered">' +
+                '<thead><tr class="w3-light-grey"><th>#</th><th>Контракт</th><th>Проект</th>' +
+                '<th>Планируемые трудозатраты</th><th>Суммы затрат</th><th>Ред-ть</th></thead><tbody>';
+        
+         for(i = 0; i < table_value.length; i++) {
+           
+           select_contract = '<select class="select-contract" disabled>' + options_contracts + '</select>';
+           select_project = '<select class="select-project" disabled>' + options_projects + '</select>';
+           input_time = '<input type=number value="' + table_value[i].time + '" readonly>';
+           input_cost = '<input type=number value="' + table_value[i].cost + '" readonly>';
+           coordinate = i + '-' + table_value[i].id + '-' + table_value[i].row;
+           
+           html += '<tr><td>' + (i + 1) + '</td>' +
+             '<td>' + select_contract + '</td>' +
+             '<td>' + select_project + '</td>' +
+             '<td>' + input_time + '</td>' +
+             '<td>' + input_cost+ '</td>' +
+             '<td class="edit-cell">' +
+               '<div class="edit-container">' +
+                 '<button class="edit-button" value="' + i + '">✎</button>' + 	
+                 '<button class="delete-button" value="' + coordinate + '">✖</button></div>' +
+               '<div class="prompt-container"  style="display: none;">' +
+                 '<button class="save-button save" value="' + coordinate + '">✔</button>' +
+                 '<button class="cancel-button cancel" value="' + i + '">✘</button></div></td></tr>';
+         }
+         
+         html += '</tbody></table>';
+         
+         table_container.innerHTML = html;
+         
+         var rows_contract = document.querySelectorAll('td select.select-contract'),
+             rows_project = document.querySelectorAll('td select.select-project');
+         
+         for(i = 0; i < rows_contract.length; i++){
+           rows_contract[i].value = table_value[i].contract_id;
+           rows_project[i].value = table_value[i].project_id;
+           rows_contract[i].remove(0);
+           rows_project[i].remove(0);
+         }
+         
+         createObserver(table_container);
+      }
+      
+      function createObserver(table){
+        var i = 0,
+        edit_cell = table.querySelectorAll('.edit-cell');
+        
+        createSort(table);
+        
+        for(i = 0; i < edit_cell.length; i++ ){
+          edit_cell[i].addEventListener('click', function(event){
+            var row_num;
+            
+            if(event.target.classList.contains('edit-button')){
+            
+              row_num = event.target.value;
+              changeInput(row_num, false, '#ecffe6', 'none', 'inline-block');
+              blockOtherRows(row_num);
+            }
+            if(event.target.classList.contains('cancel-button')){
+            
+              row_num = event.target.value;
+              cancelInput(row_num);
+              changeInput(row_num, true, 'transparent', 'inline', 'none');
+              blockOtherRows();
+            }
+            if(event.target.classList.contains('save-button')){
+            
+              params = event.target.value.split('-');
+              saveInput(params);
+              changeInput(params[0], true, 'transparent', 'inline', 'none');
+              blockOtherRows();
+            }
+            if(event.target.classList.contains('delete-button')){
+              if(confirm("Вы точно хотите удалить отдел?")) {
+                params = event.target.value.split('-');
+                removeWTime();
+              }
+            }
+          });
+        }
+      }
+      
+      function createSort(table){
+    
+        var head = table.querySelectorAll('tr th'),
+            nameHead = head[1],
+            projHead = head[2],
+            timeHead = head[3],
+            costHead = head[4];
+        
+        nameHead.onclick = function(){
+          renderTable(table_value.sort(compareByName));
+        };
+        projHead.onclick = function(){
+          renderTable(table_value.sort(compareByProject));
+        };
+        timeHead.onclick = function(){
+          renderTable(table_value.sort(compareByTime));
+        };
+        costHead.onclick = function(){
+          renderTable(table_value.sort(compareByCost));
+        };
+      }
+      
+      function blockOtherRows(row_num){
+        var rows = document.querySelectorAll('tbody tr .edit-container'),
+        i = 0, buttons;
+        
+        if(row_num) {
+          
+          for(i = 0; i < rows.length; i++){
+            buttons = rows[i].querySelectorAll('button');
+            buttons[0].disabled = true;
+          }
+        } 
+        else {
+          for(i = 0; i < rows.length; i++){
+            buttons = rows[i].querySelectorAll('button');
+            buttons[0].disabled = false;
+          }
+        }
+      }
+      
+      function changeInput(row_num, read, color, dspl_edit, dspl_prompt){
+      
+        var current_row = document.querySelectorAll('tbody tr')[row_num],
+        input = current_row.querySelectorAll('input'),
+        select = current_row.querySelectorAll('select'),
+        prompt_ = current_row.querySelector('.prompt-container'),
+        edit = current_row.querySelector('.edit-container');
+        
+        input[0].readOnly = read;
+        input[0].style.backgroundColor = color;
+        input[1].readOnly = read;
+        input[1].style.backgroundColor = color;
+        select[0].disabled = read;
+        select[0].style.backgroundColor = color;
+        select[1].disabled = read;
+        select[1].style.backgroundColor = color;
+        edit.style.display = dspl_edit;
+        prompt_.style.display = dspl_prompt;
+        
+        console.log(row_num);
+      }
+      
+      function cancelInput(row_num){
+        var row =  document.querySelectorAll('tbody tr')[row_num],
+            input = row.querySelectorAll('input'),
+            select = row.querySelectorAll('select');
+        
+        input[0].value = table_value[row_num].time;
+        input[1].value = table_value[row_num].cost;
+        select[0].value = table_value[row_num].contract_id;
+        select[1].value = table_value[row_num].project_id;
+      }
+      
+      function saveInput(params){
+        var row_num = params[0],
+            id = params[1],
+            s_row = params[2], // s_row - sheet row in google sheet doc
+            tableRow =  document.querySelectorAll('tbody tr')[row_num],
+            input = tableRow.querySelectorAll('input'),
+            select = tableRow.querySelectorAll('select');
+        
+        var info = {
+              contract_id: select[0].value,
+              project_id: select[1].value,
+              time: input[0].value,
+              cost: input[1].value,
+              row: s_row
+            };
+        
+        console.log(info);
+        google.script.run.withSuccessHandler(onEditSuccess).saveProvision(info);
+      }
+      
+      function removeWTime(date){
+        if(params.length == 0) return;
+        
+        var row_num = params[0],
+            id = params[1],
+            s_row = params[2]; // s_row - sheet row in google sheet doc
+        
+        var info = {
+              row: s_row
+            };
+        
+        google.script.run.withSuccessHandler(onEditSuccess).removeRow(info);
+        params = [];
+        getTableValue();
+      }
+      
+      function onEditSuccess(message){
+        var editMessage = document.querySelector("#edit_message");
+        if(message.status == 'Success') {
+          showMessage(editMessage, 'Запись успешно изменена','green');
+        } 
+        else {
+          showMessage(editMessage, message.text, 'red');
+        }    
+      }
+    </script>
+
+
+
+  </body>
+</html>
+
+

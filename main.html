@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <?!= include('w3css'); ?>
+  </head>
+  <body>
+    <div class="header w3-container">
+      <h2>Бюджет</h2>
+    </div>
+    
+    <div class="w3-row">
+      <div class="addition-container w3-container w3-bar-block w3-third">
+        <h4>Формы добавления</h4>
+        <?var url = getScriptUrl();?>
+        <a href='<?=url?>?page=department&title=Отделы'class="w3-bar-item w3-button w3-border w3-light-grey w3-leftbar">Отделы</a>
+        <a href='<?=url?>?page=employee&title=Сотрудники'class="w3-bar-item w3-button w3-border w3-light-grey w3-leftbar">Сотрудники</a>
+        <a href='<?=url?>?page=payment&title=ЗП сотрудников'class="w3-bar-item w3-button w3-border w3-light-grey w3-leftbar">ЗП сотрудников</a>
+        <a href='<?=url?>?page=project&title=Проекты'class="w3-bar-item w3-button w3-border w3-light-grey w3-leftbar">Проекты</a>
+        <a href='<?=url?>?page=work_time&title=Трудозатраты по проектам'class="w3-bar-item w3-button w3-border w3-light-grey w3-leftbar">Трудозатраты по проектам</a>
+        <a href='<?=url?>?page=contract&title=Контракты'class="w3-bar-item w3-button w3-border w3-light-grey w3-leftbar">Контракты</a>
+        <a href='<?=url?>?page=provision&title=Обеспечение контрактов'class="w3-bar-item w3-button w3-border w3-light-grey w3-leftbar">Обеспечение контрактов</a>
+        <a href='<?=url?>?page=work_days&title=Рабочие часы по месяцам'class="w3-bar-item w3-button w3-border w3-light-grey w3-leftbar">Рабочие часы по месяцам</a>
+      </div>
+      <div class="addition-container w3-container w3-bar-block w3-third">
+        <h4>Отчеты</h4>
+        <a href='<?=url?>?page=report_empl&title=Отчет по сотрудникам и отделам' class="w3-bar-item w3-button w3-border w3-light-grey w3-leftbar">Отчет по сотрудникам и отделам</a>
+        <a href='<?=url?>?page=report_org&title=Свод по организации' class="w3-bar-item w3-button w3-border w3-light-grey w3-leftbar">Свод по организации</a>
+      </div>
+    </div>
+    
+    <button onclick="google.script.run.withSuccessHandler(success).get();">Get</button>
+    
+    <script>
+      
+      function success(data){
+        console.log(JSON.parse(data));
+      }
+    </script>
+  </body>
+</html>
+
+

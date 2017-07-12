@@ -1,0 +1,56 @@
+<script>
+ function createSort(table){
+    var thead = document.querySelectorAll('tr th');
+//    clearArrows(thead);
+    
+    for(var i = 1; i < thead.length - 1; i++ ){
+      thead[i].onclick = function(event){
+        
+        console.log(event.target);
+        var cell = event.target.tagName === 'SPAN' ? event.target.parentElement : event.target;
+        var mode = cell.className,
+            type = cell.getAttribute('type');
+            
+        clearArrows(thead, event.target);
+        console.log(mode);
+        console.log(cell.querySelector('span'));
+        if(mode == 0 || mode == -1) {
+          mode = 1;
+          cell.querySelector('span').innerHTML = '&nbsp;⮝';
+        } 
+        else if (mode == 1){
+          mode = -1;
+          cell.querySelector('span').innerHTML = '&nbsp;⮟';
+        } 
+        console.log(mode);
+
+        cell.className = mode;
+        
+        renderTable(JSON.stringify(table_value.sort(function(a,b){
+          var x = (typeof a[type] == 'string') ? a[type].toLowerCase() : a[type],
+              y = (typeof b[type] == 'string') ? b[type].toLowerCase() : b[type],
+              res = 0;    
+          if(x > y) res = 1;
+          if(x < y) res = -1;
+          if(x === y) res = 0;
+
+          return res * mode;
+        })));
+      }
+    }
+  }
+  
+  function clearArrows(thead, current){
+    var i = 0;
+    console.log('cA',thead);
+    
+    for(i = 1; i < thead.length - 1; i++){
+      if(thead[i].getAttribute('type') == current.getAttribute('type')) {
+        continue;
+      } else {
+        thead[i].querySelector('span').textContent = '';
+        thead[i].className = '0';
+      }
+    }
+  }
+</script>

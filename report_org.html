@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <?!= include('jquery.min'); ?>
+    <?!= include('datepicker'); ?>
+    <?!= include('w3css'); ?>
+    <?var url = getScriptUrl();?>
+  </head>
+  <body>
+    <div class="header w3-container"> 
+      <h2>Свод по организации</h2>
+      <div class="w3-bar">
+         <a href='<?=url?>?page=main&title=Бюджет' class="w3-bar-item w3-button w3-margin-bottom w3-teal">На главную</a>
+      </div>
+    </div>
+    
+    <div class="form-container w3-container w3-card-2 w3-padding-32 w3-white" style="width:400px">
+      <form id="reportForm">
+        <lable for="monthFrom">Месяц с</lable>
+        <input id="monthFrom" name="dateFrom" class="w3-input w3-border w3-margin-bottom" type="text"/>
+        <lable for="monthTo">Месяц по</lable>
+        <input id="monthTo" name="dateTo" class="w3-input w3-border w3-margin-bottom" type="text"/>
+        <input id="fileName" name="fileName" class="w3-input w3-border w3-margin-bottom" type="text" placeholder="Название файла..."/>
+        <input  id="createBtn" type="button" value="Создать отчет" class="w3-button w3-teal w3-medium" onclick=createReport(this.form)>
+      </form>
+    </div>
+ 
+    <div class="info-panel w3-container">
+      <div id="message" class="w3-section"></div>
+      <div class="report" class="w3-section">
+        <a id="link" href="" target="_blank"></a>
+      </div>
+    </div>
+    <script>
+      
+      $("#monthFrom").datepicker({
+        autoClose: true,
+        view: 'months',
+        minView: 'months',
+        dateFormat: 'MM.yyyy',
+        onSelect: function(fd, dT, picker) {
+          $("#monthTo").datepicker().data('datepicker').update({
+            minDate: dT
+          })
+        }
+      });
+      
+      $("#monthTo").datepicker({
+        autoClose: true,
+        view: 'months',
+        minView: 'months',
+        dateFormat: 'MM.yyyy',
+        onSelect: function(fd, dT, picker) {
+          $("#monthFrom").datepicker().data('datepicker').update({
+            maxDate: dT,
+          })
+        }
+      });
+      
+      var depSelect = document.getElementById('department'),
+        emplSelect = document.getElementById('employee'),
+        messageContainer = document.getElementById('message'),
+        createBtn = document.getElementById('createBtn'),
+        link = document.getElementById('link');
+      
+      function createReport(form){
+        message.innerText = 'Пожалуйста подождите ...';
+        message.style.color = 'black';
+        createBtn.disabled = true;
+        link.innerText = '';
+        
+        var from = $('#monthFrom').datepicker().data('datepicker').selectedDates[0],
+            to = $('#monthTo').datepicker().data('datepicker').selectedDates[0];
+        
+        if(!from || !to){
+          onSuccess({type: 'rerror', value: 'Дата не выбрана!'});
+        } else {
+          
+          report_data = {
+            fileName: form.fileName.value,
+            monthFrom: form.monthFrom.value,
+            monthTo: form.monthTo.value,
+            dateFrom: from,
+            dateTo: new Date(to.getFullYear(), to.getMonth() + 1, 0),
+          }
+        
+          console.log(report_data);
+          google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFailure).createReportForOrg(JSON.stringify(report_data));
+        }      
+      }
+      
+      function onSuccess(info){
+        console.log(info);
+        createBtn.disabled = false;
+        message.innerText = '';
+        if(info.type == 'link'){
+          link.href = info.value;
+          link.innerText = 'Отчет: ' + info.value;
+        } else {
+          messageContainer.style.color = 'red';
+          messageContainer.innerText = info.value;
+        }
+        
+//        google.script.host.close();
+      }
+      
+      function onFailure(error){
+        alert("onFailure: " + error);
+      }  
+    </script>
+  </body>  
+</html>
+
+

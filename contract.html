@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <?!= include('jquery.min'); ?>
+    <?!= include('datepicker'); ?>
+    <?!= include('table_css'); ?>
+    <?!= include('w3css'); ?>
+    <?var url = getScriptUrl();?>
+  </head>
+  <body>
+    <div class="header w3-container"> 
+      <h2>Контракты</h2>
+      <div class="w3-bar">
+        <a href='<?=url?>?page=main&title=Бюджет' class="w3-bar-item w3-button w3-margin-bottom w3-teal">На главную</a>
+      </div>
+    </div>
+    <div class="main-container w3-container">
+      <div class="form-container w3-container w3-card-2 w3-padding-32 w3-white" style="width: 848px;">
+        <form id="contractsForm">
+          <div class="w3-half w3-margin-right" style="width: 400px;">
+            <label for="modeSelect">Режим</label>
+            <select id="modeSelect" name="mode" class="w3-select w3-margin-bottom">
+              <option>Разработка</option>
+              <option>Тестирование</option>
+            </select><br>
+            <label for="ncontract">№ Контракта</label>
+            <input id="ncontract" name="ncontract" type="text" class="w3-input w3-border w3-margin-bottom"/>
+            <label for="organization">Организация по контракту</label>
+            <input id="organization" name="organization" type="text" class="w3-input w3-border w3-margin-bottom"/>
+            <label for="type">Тип договора</label>
+            <select id="type" name="type" class="w3-select w3-margin-bottom">
+              <option value="opt">Выберите тип</option>
+              <option value="1">Приход</option>
+              <option value="-1">Расход</option>
+            </select>
+            <label for="status">Статус договора</label>
+            <select id="status" name="status" class="w3-select w3-margin-bottom">
+              <option value="opt">Выберите статус</option>
+              <option>Новый</option>
+              <option>На исполнение</option>
+              <option>Исполнен</option>
+            </select>
+          </div>
+          <div class="w3-half"  style="width: 400px;">
+            <label for="planTime">Планируемые трудозатраты</label>
+            <input id="planTime" name="planTime" type="number" class="w3-input w3-border w3-margin-bottom"/>
+            <label for="fullCost">Полная цена (руб)</label>
+            <input id="fullCost" name="fullCost" type="number" class="w3-input w3-border w3-margin-bottom"/>
+            <label for="dateFrom">Дата начала</label>
+            <input id="dateFrom" name="dateFrom" type="text" class="datepicker-here w3-input w3-border w3-margin-bottom" readonly/>
+            <label for="dateTo">Дата окончания</label>
+            <input id="dateTo" name="dateTo" type="text" class="datepicker-here w3-input w3-border w3-margin-bottom" readonly/>
+            <label for="document">Документы</label>
+            <input id="document" name="document" type="text" class="w3-input w3-border w3-margin-bottom"/>
+            <input id="sendBtn" type="button" value="Отправить" class="w3-button w3-teal w3-medium w3-margin-bottom w3-right" onClick="send(this.form)"/>
+          </div>
+        </form>
+        <div class="info-panel">
+          <div id="create_message"></div>
+        </div>
+      </div>
+      <div class="edit-panel">
+        
+        <div id="table-container">
+          Идет загрузка таблицы ...
+        </div>
+        <div class="info-panel">
+          <div id="edit_message"></div>
+        </div>
+      </div>
+
+
+    </div>
+    <script>
+      $("#dateTo").datepicker({
+        position: "right top",
+        autoClose: true,
+        onSelect: function(fd, dT, picker) {
+          $("#dateFrom").datepicker().data('datepicker').update({
+            maxDate: dT,
+            autoClose: true,
+          })
+        }
+      })
+      
+      $("#dateFrom").datepicker({
+        position: "right top",
+        autoClose: true,
+        onSelect: function(fd, dT, picker) {
+          $("#dateTo").datepicker().data('datepicker').update({
+            minDate: dT,
+            autoClose: true,
+          })
+        }
+      })
+      
+      function send(form){
+        var note = {
+          mode: form.mode.value,
+          ncontract: form.ncontract.value,
+          organization: form.organization.value,
+          type: form.type.value,
+          status: form.status.value,
+          planTime: form.planTime.value,
+          fullCost: form.fullCost.value,
+          dateFrom: form.dateFrom.value,
+          dateTo: form.dateTo.value,
+          document: form.document.value
+        };
+        
+        console.log(note);
+        
+        document.querySelector("#sendBtn").disabled = true;
+        google.script.run.withSuccessHandler(onCreateSuccess).addContract(note);
+      }
+      
+/*
+  Callback вывод сообщения статуса (успех/неуспех) - после отправки addEmployee()
+*/
+      function onCreateSuccess(message){
+        var createMessage = document.querySelector('#create_message');
+        if(message == 'Success') {
+          showMessage(createMessage, 'Запись успешно добавлена!','green');
+          resetInput();
+        } 
+        else {
+          showMessage(createMessage, message, 'red');
+        }    
+      
+        document.querySelector("#sendBtn").disabled = false;
+      }
+      
+      function showMessage(messageContainer, message, color){
+        messageContainer.style.color = color;
+        messageContainer.innerText = message;
+      }
+      
+      function resetInput(){
+//        getTableValue();
+        document.querySelector("#contractsForm").reset();
+      }      
+      
+    </script>
+    <script>
+      getTableValue();
+      
+      var table_value = [], params = [];
+      
+      function getTableValue(){
+        var mode = document.getElementById('modeSelect').value;
+        google.script.run.withSuccessHandler(renderTable).getContractValue(mode);
+      }
+      
+      function renderTable(_table_value){
+        table_value = JSON.parse(_table_value);
+        
+        console.log(table_value);
+        
+        var table_container = document.getElementById('table-container'),
+                html = '',
+                i = 0,
+                input_name = '',
+                input_org = '',
+                input_time = '',
+                input_cost = '',
+                input_from = '',
+                input_to = '',
+                input_doc = '',
+                select_type = '<select class="select-type" disabled><option value="1">Приход</option><option value="-1">Расход</option></select>',
+                select_status = '<select class="select-status" disabled><option>Новый</option><option>На исполнение</option><option>Исполнен</option></select>',
+                coordinate = '';
+            
+         html +='<table class="w3-table-all w3-centered">' +
+                '<thead><tr class="w3-light-grey"><th>Контракт</th><th>Организация</th><th>Тип</th><th>Статус</th><th>План-е<br>труд-ты</th>' +
+                '<th>Полная<br>цена</th><th>Дата начала</th><th>Дата окончания</th><th>Документы</th><th>Ред-ть</th></thead><tbody>';
+        
+         for(i = 0; i < table_value.length; i++) {
+           console.log(table_value[i].time );
+           coordinate = i + '-' + table_value[i].id + '-' + table_value[i].row;
+           input_name = '<input type="text" value="' + table_value[i].name + '" readonly>';
+           input_org = '<input type="text" value="' + table_value[i].organization + '" readonly>';
+           input_time = '<input type="number" value="' + table_value[i].time + '" readonly>';
+           input_cost = '<input type="number" value="' + table_value[i].cost * table_value[i].type + '" readonly>';
+           input_from = '<input class="date_from" type="text" value="' + dateToString(table_value[i].date_from) + '" readonly>';
+           input_to = '<input class="date_to" type=text value="' + dateToString(table_value[i].date_to) + '" readonly>';
+           input_doc = '<input type="text" value="' + table_value[i].document + '" readonly>';      
+           
+           html += '<tr><td>' + input_name + '</td>' +
+             '<td>' + input_org + '</td>' +
+             '<td>' + select_type + '</td>' +
+             '<td>' + select_status + '</td>' +
+             '<td>' + input_time + '</td>' +
+             '<td>' + input_cost + '</td>' +
+             '<td>' + input_from + '</td>' +
+             '<td>' + input_to + '</td>' +
+             '<td>' + input_doc + '</td>' +
+             '<td class="edit-cell">' +
+               '<div class="edit-container">' +
+                 '<button class="edit-button" value="' + i + '">✎</button></div>' + 	
+               '<div class="prompt-container"  style="display: none;">' +
+                 '<button type="submit" class="save-button save" value="' + coordinate + '">✔</button>' +
+                 '<button class="cancel-button cancel" value="' + i + '">✘</button></div></td></tr>';
+         }
+         
+         html += '</tbody></table>';
+       
+         table_container.innerHTML = html;
+        
+         $(".date_from").datepicker({
+           autoClose: true
+         });
+         
+         $(".date_to").datepicker({
+           autoClose: true
+         });
+         
+         var rows_type = document.querySelectorAll('td select.select-type'),
+             rows_status = document.querySelectorAll('td select.select-status');
+         
+         for(i = 0; i < rows_type.length; i++){
+           rows_type[i].value = table_value[i].type;
+           rows_status[i].value = table_value[i].status;
+         }
+            
+         createObserver(table_container);
+      }
+      
+       function dateToString(_date){
+        if(_date != '') {
+          var date = new Date(_date);
+          
+          return (date.getDate() > 9 ? date.getDate() : '0' + date.getDate()) +
+            '.' + ((date.getMonth() + 1) > 9 ? (date.getDate() + 1) : '0' + (date.getMonth() + 1)) +
+            '.' + date.getFullYear();
+        }
+        else {
+          return '';
+        }
+      }
+      
+      function createObserver(table){
+        var i = 0,
+        edit_cell = table.querySelectorAll('.edit-cell');
+        
+        createSort(table);   
+        
+        for(i = 0; i < edit_cell.length; i++ ){
+          edit_cell[i].addEventListener('click', function(event){
+            var row_num = event.target.value;
+            
+            if(event.target.classList.contains('edit-button')){
+    
+              changeInput(row_num, false, '#ecffe6', 'none', 'inline-block');
+              blockOtherRows(row_num);
+            }
+            if(event.target.classList.contains('cancel-button')){
+    
+              cancelInput(row_num);
+              changeInput(row_num, true, 'transparent', 'inline', 'none');
+              blockOtherRows();
+            }
+            if(event.target.classList.contains('save-button')){
+            
+              params = row_num.split('-');
+              saveInput(params);
+              changeInput(params[0], true, 'transparent', 'inline', 'none');
+              blockOtherRows();
+            }
+          });
+        }
+      }
+      
+      function createSort(table){
+    
+        var head = table.querySelectorAll('tr th'),
+            nameHead = head[0],
+            orgHead = head[1],
+            typeHead = head[2],
+            statusHead = head[3],
+            timeHead = head[4],
+            costHead = head[5],
+            fromHead = head[6],
+            toHead = head[7],
+            docHead = head[8];
+        
+        nameHead.onclick = function(){
+          renderTable(JSON.stringify(table_value.sort(compareByName)));
+        };
+        orgHead.onclick = function(){
+          renderTable(JSON.stringify(table_value.sort(compareByOrganization)));
+        };
+        typeHead.onclick = function(){
+          renderTable(JSON.stringify(table_value.sort(compareByType)));
+        };
+        statusHead.onclick = function(){
+          renderTable(JSON.stringify(table_value.sort(compareByStatus)));
+        };
+        timeHead.onclick = function(){
+          renderTable(JSON.stringify(table_value.sort(compareByTime)));
+        };
+        costHead.onclick = function(){
+          renderTable(JSON.stringify(table_value.sort(compareByCost)));
+        };
+        fromHead.onclick = function(){
+          renderTable(JSON.stringify(table_value.sort(compareByDateFrom)));
+        };
+        toHead.onclick = function(){
+          renderTable(JSON.stringify(table_value.sort(compareByDateTo)));
+        };
+        docHead.onclick = function(){
+          renderTable(JSON.stringify(table_value.sort(compareByDocument)));
+        };
+      }
+      
+      function blockOtherRows(row_num){
+        var rows = document.querySelectorAll('tbody tr .edit-container'),
+        i = 0, buttons;
+        
+        if(row_num) {
+          
+          for(i = 0; i < rows.length; i++){
+            buttons = rows[i].querySelectorAll('button');
+            buttons[0].disabled = true;
+          }
+        } 
+        else {
+          for(i = 0; i < rows.length; i++){
+            buttons = rows[i].querySelectorAll('button');
+            buttons[0].disabled = false;
+          }
+        }
+      }
+      
+      function changeInput(row_num, read, color, dspl_edit, dspl_prompt){
+      
+        var current_row = document.querySelectorAll('tbody tr')[row_num],
+        input = current_row.querySelectorAll('input'),
+        select = current_row.querySelectorAll('select'),
+        prompt_ = current_row.querySelector('.prompt-container'),
+        edit = current_row.querySelector('.edit-container');
+        
+        input[0].readOnly = read;
+        input[0].style.backgroundColor = color;
+        input[1].readOnly = read;
+        input[1].style.backgroundColor = color;
+        input[2].readOnly = read;
+        input[2].style.backgroundColor = color;
+        input[3].readOnly = read;
+        input[3].style.backgroundColor = color;
+        input[4].disabled = read;
+        input[4].style.backgroundColor = color;
+        input[5].disabled = read;
+        input[5].style.backgroundColor = color;
+        input[6].readOnly = read;
+        input[6].style.backgroundColor = color;
+        select[0].disabled = read;
+        select[1].disabled = read;
+        edit.style.display = dspl_edit;
+        prompt_.style.display = dspl_prompt;
+        
+        console.log(row_num);
+      }
+      
+      function cancelInput(row_num){
+        var row =  document.querySelectorAll('tbody tr')[row_num],
+            input = row.querySelectorAll('input'),
+            select = row.querySelectorAll('select');
+        
+        input[0].value = table_value[row_num].name;
+        input[1].value = table_value[row_num].organization;
+        input[2].value = table_value[row_num].time;
+        input[3].value = table_value[row_num].cost;
+        input[4].value = dateToString(table_value[row_num].date_from);    
+        input[5].value = dateToString(table_value[row_num].date_to);
+        input[6].value = table_value[row_num].document;
+        select[0].value = table_value[row_num].type;
+        select[1].value = table_value[row_num].status;
+      }
+      
+      function saveInput(params){
+        var row_num = params[0],
+          s_row = params[2],
+          tableRow =  document.querySelectorAll('tbody tr')[row_num],
+          input = tableRow.querySelectorAll('input'),
+          select = tableRow.querySelectorAll('select');
+        
+        var info = {
+               id: table_value[row_num].id,
+               name: input[0].value,
+               organization: input[1].value,
+               status: select[1].value,
+               time: input[2].value,
+               cost: input[3].value * select[0].value,
+               date_from: input[4].value,
+               date_to: input[5].value,
+               document: input[6].value,
+               row: s_row
+            };
+        
+        console.log(info);
+        google.script.run.withSuccessHandler(onEditSuccess).saveContract(info);
+      }
+      
+      function onEditSuccess(message){
+        console.log(message);
+        var editMessage = document.querySelector("#edit_message");
+        if(message.status === 'Success') {
+          showMessage(editMessage, 'Запись успешно изменена','green');
+        } 
+        else {
+          showMessage(editMessage, message.text, 'red');
+        }    
+      }
+    </script>
+  </body>
+</html>
