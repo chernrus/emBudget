@@ -81,14 +81,14 @@ function getList(mode, type, depID){
   
   if(depID && type == 'employee') {
     for(var i = 1; i < tableValue.length; i++) {
-      if(tableValue[i][3] == depID && tableValue[i][4] ){
+      if(tableValue[i][3] == depID && tableValue[i][4] != 'Уволен'){
         list.push({id: tableValue[i][0], name: tableValue[i][1]});
       }
     }
   } 
   else if(type == 'employee') {
     for(var i = 1; i < tableValue.length; i++) {
-      if(tableValue[i][4]) {
+      if(tableValue[i][4] != 'Уволен') {
         list.push({id: tableValue[i][0], name: tableValue[i][1]});
       }
     }

@@ -106,13 +106,14 @@ function createEmplModel(data) {
       departments = openDocument(FILEID.department, EM.mode).getDataRange().getValues();
 
   for(i = 1; i < data.length; i++){
-    if(data[i][4]) {
+    if(data[i][4] != 'Уволен') {
       result.push({
           id: data[i][0],
           name: data[i][1],
           phone: data[i][2],
           dep_id: data[i][3],
           dep_name: getDepName(data[i][3], departments),
+          status: data[i][4],
           row: i + 1
       });
     }
@@ -131,13 +132,18 @@ function saveEmployee(data) {
 
   Logger.log(data);
   var sheet = openDocument(FILEID.employee, data.mode);
+  if(data.status == 'Уволен') {
+    return deleteEmployee(data);
+  } 
+  else {
+    sheet.getRange(data.row, 2, 1, 4).setValues([[cleanStr(data.name), data.phone, data.department, data.status]]);
 
-  sheet.getRange(data.row, 2, 1, 3).setValues([[cleanStr(data.name), data.phone, data.department]]);
-
-  return {
-    type: 'Success',
-    text: 'Сотрудник "' + data.name + '" изменен!'
-  };
+    return {
+      type: 'Success',
+      text: 'Сотрудник "' + data.name + '" изменен!'
+    };
+  }
+  
 }
 
 function deleteEmployee(data){
@@ -150,8 +156,8 @@ function deleteEmployee(data){
       i = 0;
 
   if(checkDateInWorkTime(data.id, data.date, data.mode, tableWTime)) {
-    sheet.getRange(data.row, 2).setValue(data.name + ' (удален)');
-    sheet.getRange(data.row, 5, 1, 2).setValues([[false, data.date]]);
+//    sheet.getRange(data.row, 2).setValue(data.name + ' (уволен)');
+    sheet.getRange(data.row, 2, 1, 5).setValues([[data.name, data.phone, data.department, data.status, data.date]]);
 
     for(i = 0; i < payment_value.length; i++){
       if(payment_value[i][0] == data.id){
@@ -169,7 +175,7 @@ function deleteEmployee(data){
 
     return {
       type: 'Success',
-      text: 'Сотрудник "' + data.name + '" удален!'
+      text: 'Сотрудник "' + data.name + '" уволен!'
     }
   }
   else {

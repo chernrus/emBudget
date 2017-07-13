@@ -61,7 +61,7 @@
                 <input id="delete_date" name="delete_date" class="w3-input w3-border w3-margin-bottom" type="text" style="width: 165px" readonly/>    
             </div>
             
-            <div class="confirm-date w3-container">
+            <div class="confirm-date">
                 <button id="okBtn" class="w3-button w3-green">Ok</button>
                 <button id="cancelBtn" class="w3-button w3-red">Cancel</button>
             </div>
@@ -172,7 +172,8 @@
       }   
    
       function renderTable(_table_value){
-        console.log(table_value);
+        console.log(_table_value);
+         console.log('--');
         table_value = _table_value;
         var table_container = document.getElementById('table-container'),
             html = '',
@@ -181,25 +182,37 @@
             input_phone = '',
             options_dep = document.querySelector('#department').innerHTML,
             select_dep = '',
+            select_status = '',
             coordinate = '';
-        
+       
         html +='<table class="w3-table-all w3-centered">' +
-            '<thead><tr class="w3-light-grey"><th>#</th><th>Сотрудник</th><th>Телефон</th><th>Отдел</th><th>Редактировать</th></thead><tbody>';
+            '<thead><tr class="w3-light-grey"><th>#</th>' +
+            '<th>Сотрудник</th>' +
+            '<th>Телефон</th>' +
+            '<th>Отдел</th>' +
+            '<th>Статус</th>' +
+            '<th>Редактировать</th></thead><tbody>';
             
         for(i = 0; i < table_value.length; i++) {
           input_name = '<input class="w3-input edit-name" type=text value="' + table_value[i].name + '" readonly>';
           input_phone = '<input class="w3-input edit-phone" type=text value="' + table_value[i].phone + '" readonly>';
-          select_dep = '<select class="w3-input" disabled>' + options_dep + '</select>';
+          select_dep = '<select class="w3-input edit-dep" disabled>' + options_dep + '</select>';
+          select_status = '<select class="w3-input edit-status" disabled>' + 
+          '<option value="Работает">Работает</option>' +
+          '<option value="В отпуске">В отпуске</option>'+
+          '<option value="В отпуске без сод-я">В отпуске без сод-я</option>'+
+          '<option value="Уволен">Уволен</option></select>';
+          
           coordinate = i + '-' + table_value[i].id + '-' + table_value[i].row;
           
           html += '<tr><td>' + (i + 1) + '</td>' +
             '<td>' + input_name + '</td>' +
             '<td>' + input_phone + '</td>' +
             '<td>' + select_dep + '</td>' +
+            '<td>' + select_status + '</td>' +
             '<td class="edit-cell">' +
               '<div class="edit-container">' +
-              '<button class="edit-button" value="' + i + '">✎</button>' + 	
-              '<button class="delete-button" value="' + coordinate + '">✖</button></div>' +
+              '<button class="edit-button" value="' + i + '">✎</button></div>' +
               '<div class="prompt-container"  style="display: none;">' +
               '<button class="save-button save" value="' + coordinate + '">✔</button>' +
               '<button class="cancel-button cancel" value="' + i + '">✘</button></div></td></tr>';
@@ -212,10 +225,12 @@
         
         $('table td .edit-phone').inputmask({'mask': '+7(999) 999-9999'});
         
-        var rows = document.querySelectorAll('td select');
+        var depSelect = document.querySelectorAll('table select.edit-dep'),
+            statusSelect = document.querySelectorAll('table select.edit-status');
         
-        for(i = 0; i < rows.length; i++){
-          rows[i].value = table_value[i].dep_id;
+        for(i = 0; i < depSelect.length; i++){
+          depSelect[i].value = table_value[i].dep_id;
+          statusSelect[i].value = table_value[i].status;
         }
         
         createObserver(table_container);
@@ -257,18 +272,20 @@
               if(event.target.classList.contains('save-button')){
                 
                 params = event.target.value.split('-');
-                saveInput(params);
-                changeInput(params[0], true, 'transparent', 'inline', 'none');
-                blockOtherRows();
-              }
-              if(event.target.classList.contains('delete-button')){
-              
-                if(confirm("Вы точно хотите удалить отдел?")) {
-                  params = event.target.value.split('-');
+                console.log(params[0]);
+                if(document.querySelectorAll('table select.edit-status')[params[0]].value == 'Уволен'){ 
+                  if(confirm("Вы точно хотите уволить сотрудника?")) {
                   
-                  showCloseModal('block');
-                  console.log('showModal');           
+                    showCloseModal('block');
+                    console.log('showModal');  
+                  }
                 }
+                else {
+                  saveInput(params);
+                  changeInput(params[0], true, 'transparent', 'inline', 'none');
+                  blockOtherRows();
+                }
+                
               }
             });
           }
@@ -283,14 +300,12 @@
           for(i = 0; i < rows.length; i++){
             buttons = rows[i].querySelectorAll('button');
             buttons[0].disabled = true;
-            buttons[1].disabled = true;
           }
         } 
         else {
           for(i = 0; i < rows.length; i++){
             buttons = rows[i].querySelectorAll('button');
             buttons[0].disabled = false;
-            buttons[1].disabled = false;
           }
         }
       }
@@ -298,11 +313,12 @@
       function cancelInput(row_num){
         var row =  document.querySelectorAll('tbody tr')[row_num],
             input = row.querySelectorAll('input'),
-            select = row.querySelector('select');
+            select = row.querySelectorAll('select');
             
         input[0].value = table_value[row_num].name; 
         input[1].value = table_value[row_num].phone;
-        select.value = table_value[row_num].dep_id;
+        select[0].value = table_value[row_num].dep_id;
+        select[1].value = table_value[row_num].status;
       }
       
       function changeInput(row_num, read, color, dspl_edit, dspl_prompt){
@@ -311,13 +327,14 @@
             input = current_row.querySelectorAll('input'),
             prompt_ = current_row.querySelector('.prompt-container'),
             edit = current_row.querySelector('.edit-container'),
-            select = current_row.querySelector('select');
+            select = current_row.querySelectorAll('select');
       
         input[0].readOnly = read;
         input[0].style.backgroundColor = color;
         input[1].readOnly = read;
         input[1].style.backgroundColor = color;
-        select.disabled = read;
+        select[0].disabled = read;
+        select[1].disabled = read;
         edit.style.display = dspl_edit;
         prompt_.style.display = dspl_prompt;
       }
@@ -332,7 +349,7 @@
             s_row = params[2], // s_row - sheet row in google sheet doc
             row =  document.querySelectorAll('tbody tr')[row_num],
             input = row.querySelectorAll('input'),
-            select = row.querySelector('select');
+            select = row.querySelectorAll('select');
            
             
         var mode = document.getElementById('mode-select').value,
@@ -340,12 +357,14 @@
               mode: mode,
               name: input[0].value,
               phone: input[1].value,
-              department: select.value,
+              department: select[0].value,
+              status: select[1].value,
               row: s_row
             };
         
         table_value[row_num].name = employee_info.name;
         table_value[row_num].dep_id = employee_info.department;
+        table_value[row_num].status = employee_info.status;
         
         google.script.run.withSuccessHandler(onEditSuccess).saveEmployee(employee_info);
       }
@@ -354,6 +373,7 @@
         var editMessage = document.querySelector("#edit_message");
         if(message.type == 'Success') {
           showMessage(editMessage, message.text,'green');
+          getTableValue();
         } else {
           showMessage(editMessage, message.text, 'red');
           alert(message);
@@ -393,7 +413,8 @@
             id = params[1],
             s_row = params[2], // s_row - sheet row in google sheet doc
             current_row = document.querySelectorAll('tbody tr')[row_num],
-            input = current_row.querySelectorAll('input');
+            input = current_row.querySelectorAll('input'),
+            select =  current_row.querySelectorAll('select');
                    
         var mode = document.getElementById('mode-select').value,
             department_info = {
@@ -401,13 +422,15 @@
               mode: mode,
               date: date,
               name: input[0].value,
+              phone: input[1].value,
+              department: select[0].value,
+              status: select[1].value,
               row: s_row
             };
        
         console.log('Remove!');
         google.script.run.withSuccessHandler(onEditSuccess).deleteEmployee(department_info);
         params = [];
-        getTableValue();
       }
     
     </script>
