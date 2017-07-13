@@ -29,7 +29,7 @@
           <lable for="phone">Телефон</lable>
           <input id="phone" name="phone" type="text" placeholder="+7(000) 000-0000" class="w3-input w3-border w3-margin-bottom"/>
           <lable for="department">Отдел</lable>
-          <select id="department" name="department" class="w3-input w3-margin-bottom">
+          <select id="department" name="department" class="w3-input w3-margin-bottom" disabled>
             <option value="opt">Выберите отдел</option>
           </select>
           <input id="sendBtn" type="button" value="Отправить" class="w3-button w3-teal w3-medium w3-margin-bottom" onClick="send(this.form)"/>
@@ -105,6 +105,7 @@
           }
           select.innerHTML = depStr;
         }
+        select.disabled = false;
       }
       
       function send(form){

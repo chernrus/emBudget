@@ -376,21 +376,23 @@ function getFactTime(ncontract, value, row) {
 
 function checkExcessCost(provisionCost, ncontract, provisionValue, mode, row){
   
-  var i, planCost = 0, factCost = 0, diff;
+  var i = 0, 
+      planCost = 0, 
+      factCost = 0, 
+      diff;
   
   planCost = Math.abs(getPlanCost(ncontract, mode));
   factCost = getFactCost(ncontract, provisionValue, row);
   
-  Logger.log(planCost + ' -- ' + factCost);
+//  Logger.log(planCost + ' -- ' + factCost);
   return (planCost < (factCost + (+provisionCost)));
 }
 
 function getPlanCost(contractId, mode){
-  var ss = SpreadsheetApp.openById(FILEID.contract);
-  var sheet = ss.getSheetByName(mode);
-  var contractValue = sheet.getDataRange().getValues();
-  
-  var cost = 0;
+  var ss = SpreadsheetApp.openById(FILEID.contract),
+      sheet = ss.getSheetByName(mode),
+      contractValue = sheet.getDataRange().getValues(),
+      cost = 0;
   
   for(i = 1; i < contractValue.length; i++){
     if(contractId == contractValue[i][0]){
@@ -414,27 +416,27 @@ function getFactCost(ncontract, value, row){
   return cost;
 }
 
-function getList(mode, type, depID){
-  var ss = SpreadsheetApp.openById(FILEID[type]);
-  var tableValue = ss.getSheetByName(mode).getDataRange().getValues();
-  var list = [];
-  
-  if(type == 'employee'){
-    for(var i = 1; i < tableValue.length; i++) {
-      if(tableValue[i][3] == depID){
-        list.push({id: tableValue[i][0], name: tableValue[i][1]});
-      }
-    }
-  } else {
-    for(var i = 1; i < tableValue.length; i++) {
-      if(tableValue[i][4]) {
-        list.push({id: tableValue[i][0], name: tableValue[i][1]});
-      }
-    }
-  }
-
-  return list.sort(compareStr);
-}
+//function getList(mode, type, depID){
+//  var ss = SpreadsheetApp.openById(FILEID[type]),
+//      tableValue = ss.getSheetByName(mode).getDataRange().getValues(),
+//      list = [];
+//  
+//  if(type == 'employee'){
+//    for(var i = 1; i < tableValue.length; i++) {
+//      if(tableValue[i][3] == depID){
+//        list.push({id: tableValue[i][0], name: tableValue[i][1]});
+//      }
+//    }
+//  } else {
+//    for(var i = 1; i < tableValue.length; i++) {
+//      if(tableValue[i][4]) {
+//        list.push({id: tableValue[i][0], name: tableValue[i][1]});
+//      }
+//    }
+//  }
+//
+//  return list.sort(compareStr);
+//}
 
 
 /*

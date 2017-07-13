@@ -11,7 +11,7 @@ function getScriptUrl() {
 }
 
 function doGet(e) {
-  Logger.log( Utilities.jsonStringify(e) );
+  Logger.log(Utilities.jsonStringify(e));
   if (!e.parameter.page) {
     return HtmlService.createTemplateFromFile('main').evaluate().setTitle('Бюджет');
   }

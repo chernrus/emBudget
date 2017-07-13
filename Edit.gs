@@ -603,8 +603,10 @@ function savePayment(data) {
 function createPaymentModel(data) {
   var i = 0,
       result = [],
-      employees = openDocument(FILEID.employee, EM.mode).getDataRange().getValues();
-
+      curDate = new Date(),
+      employees = openDocument(FILEID.employee, EM.mode).getDataRange().getValues(),
+      wDaysTable = openDocument(FILEID.workDays, curDate.getFullYear()).getDataRange().getValues();
+      
   for(i = 1; i < data.length; i++){
     if(data[i][3]) {
       result.push({
@@ -612,7 +614,7 @@ function createPaymentModel(data) {
           name: getEmployeeName(data[i][0], employees),
           white_pay: data[i][1],
           gray_pay: data[i][2],
-          ante: getCurrentAnte(data[i][1], data[i][2]),
+          ante: getCurrentAnte(data[i][1], data[i][2], wDaysTable),
           row: i + 1,
       });
     }
@@ -629,11 +631,11 @@ function getEmployeeName(id, table) {
   }
 }
 
-function getCurrentAnte(w_pay, g_pay) {
+function getCurrentAnte(w_pay, g_pay, wDaysTable) {
   var date = new Date(),
       month = date.getMonth(),
-      table = openDocument(FILEID.workDays, date.getFullYear()).getDataRange().getValues(),
-      w_days = table[month + 1][1];
+      
+      w_days = wDaysTable[month + 1][1];
 
   return (w_pay + g_pay) / (w_days * 8);
 }

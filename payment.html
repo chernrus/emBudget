@@ -24,7 +24,7 @@
             <option>Тестирование</option>
           </select><br>
           <lable for="employee">Сотрудник</lable>
-          <select id="employee" name="employee" class="w3-select w3-margin-bottom">
+          <select id="employee" name="employee" class="w3-select w3-margin-bottom" disabled>
             <option value="opt">Выберите сотрудника</option>
           </select>
           <lable for="whitePay">ЗП белая</lable>
@@ -70,6 +70,7 @@
           str += '<option value="'+ list[i].id +'">' + list[i].name + '</option>';
         }
         select.innerHTML = str;
+        select.disabled = false;
       }
       
       function send(form){

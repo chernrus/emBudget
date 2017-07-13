@@ -28,7 +28,7 @@
           <select id="ncontract" name="ncontract" class="w3-select w3-margin-bottom"></select>
           <!--<div class="clearfix w3-margin-bottom"></div>-->
           <label for="project" class="w3-margin-top">Проект</label>
-          <select id="project" name="project" class="w3-select w3-margin-bottom">
+          <select id="project" name="project" class="w3-select w3-margin-bottom" disabled>
             <option value="opt">Выберите проект</option>
           </select>
           <label for="planTime">Планируемые трудозатраты по проекту</label>
@@ -98,7 +98,8 @@
           str += '<option value="' + projectList[i].id + '">' + projectList[i].name + '</option>';
         }
         select.innerHTML = str;
-       
+        
+        select.disabled = false;
       }
       
       function addContracts(contractList){
