@@ -9,13 +9,13 @@
     <?var url = getScriptUrl();?>
   </head>
   <body>
-    <div class="header w3-container"> 
+    <div class="header w3-container">
       <h2>Добавление зарплаты сотрудника</h2>
       <div class="w3-bar">
         <a href='<?=url?>?page=main&title=Бюджет' class="w3-bar-item w3-button w3-margin-bottom w3-teal">На главную</a>
       </div>
     </div>
-    
+
     <div class="main w3-container">
       <div class="form-container w3-container w3-card-2 w3-padding-32 w3-white w3-quarter">
         <form id="paymentForm">
@@ -46,7 +46,7 @@
           <div id="edit_message"></div>
         </div>
       </div>
-    </div>  
+    </div>
     <script>
       /*
         Формирование выпадающего списка отделов
@@ -54,25 +54,25 @@
       var mode = document.querySelector('#mode-select');
       getListForSelect();
       mode.addEventListener('change', getListForSelect);
-      
+
       function getListForSelect(){
         google.script.run.withSuccessHandler(addOptions).getEmployeeList(mode.value, 'employee');
       }
-      
+
       //Callback
       function addOptions(list){
         console.log(list);
         var select = document.querySelector("#employee"),
             str = '<option value="opt">Выберите сотрудника</option>',
             i = 0;
-              
+
         for(i; i < list.length; i++) {
           str += '<option value="'+ list[i].id +'">' + list[i].name + '</option>';
         }
         select.innerHTML = str;
         select.disabled = false;
       }
-      
+
       function send(form){
 
         var note = {
@@ -81,7 +81,7 @@
           whitePay: form.whitePay.value,
           grayPay: form.grayPay.value
         };
-          
+
         console.log(note);
         document.querySelector('#sendBtn').disabled = true;
         try {
@@ -90,7 +90,7 @@
           alert(e);
         }
       }
-      
+
       /*
         Callback вывод сообщения статуса (успех/неуспех) - после отправки addEmployee()
       */
@@ -101,47 +101,47 @@
           resetInput();
         } else {
           showMessage(createMessage, message, 'red');
-        }    
-        
+        }
+
         document.querySelector("#sendBtn").disabled = false;
       }
-      
+
       function showMessage(messageContainer, message, color){
         messageContainer.style.color = color;
         messageContainer.innerText = message;
       }
-      
+
       function resetInput(){
         getTableValue();
         document.querySelector("#paymentForm").reset();
       }
     </script>
-    
+
     <script>
       $("#delete_date").datepicker({
         autoClose: true,
         dateFormat: 'dd.mm.yyyy',
         todayButton: true
       });
-      
+
       $('#delete_date').datepicker({
         todayButton: new Date()
       })
-      
+
       getTableValue();
-      
+
       var table_value = [], params = [];
-      
+
       function getTableValue(){
         var mode = document.getElementById('mode-select').value;
         google.script.run.withSuccessHandler(renderTable).getPaymentTable(mode);
       }
-      
+
       function renderTable(_table_value){
         table_value = _table_value;
-        
+
         console.log(table_value);
-        
+
         var table_container = document.getElementById('table-container'),
                 html = '',
                 i = 0,
@@ -149,10 +149,15 @@
                 input_white = '',
                 input_gray = '',
                 coordinate = '';
-            
+
          html +='<table class="w3-table-all w3-centered">' +
-                '<thead><tr class="w3-light-grey"><th>#</th><th>Сотрудник</th><th>ЗП белая</th><th>ЗП серая</th><th>Ставка</th><th>Редактировать</th></thead><tbody>';
-        
+                '<thead><tr class="w3-light-grey">'+
+                '<th>#</th><th>Сотрудник</th>'+
+                '<th>ЗП белая(руб)</th>'+
+                '<th>ЗП серая(руб)</th>'+
+                '<th>ЗП/час(руб)</th>'+
+                '<th>Редактировать</th></thead><tbody>';
+
          for(i = 0; i < table_value.length; i++) {
            input_name = table_value[i].name;
            input_white = '<input type="number" value="' + table_value[i].white_pay + '" readonly>';
@@ -165,19 +170,19 @@
              '<td>' + table_value[i].ante.toFixed(2) + '</td>' +
              '<td class="edit-cell">' +
                '<div class="edit-container">' +
-               '<button class="edit-button" value="' + i + '">✎</button></div>' + 
+               '<button class="edit-button" value="' + i + '">✎</button></div>' +
                '<div class="prompt-container"  style="display: none;">' +
                '<button class="save-button save" value="' + coordinate + '">✔</button>' +
                '<button class="cancel-button cancel" value="' + i + '">✘</button></div></td></tr>';
          }
-         
+
          html += '</tbody></table>';
-         
+
          table_container.innerHTML = html;
-         
+
          createObserver(table_container);
       }
-      
+
       function createObserver(table){
         var i = 0,
             edit_cell = table.querySelectorAll('.edit-cell'),
@@ -186,7 +191,7 @@
             whiteHead = head[2],
             grayHead = head[3],
             anteHead = head[4];
-            
+
         nameHead.onclick = function(){
           renderTable(table_value.sort(compareByName));
         }
@@ -199,26 +204,26 @@
         anteHead.onclick = function(){
           renderTable(table_value.sort(compareByAnte));
         }
-        
+
         for(i = 0; i < edit_cell.length; i++ ){
           edit_cell[i].addEventListener('click', function(event){
             var row_num;
-            
+
             if(event.target.classList.contains('edit-button')){
-            
+
               row_num = event.target.value;
               changeInput(row_num, false, '#ecffe6', 'none', 'inline-block');
               blockOtherRows(row_num);
             }
             if(event.target.classList.contains('cancel-button')){
-            
+
               row_num = event.target.value;
               cancelInput(row_num);
               changeInput(row_num, true, 'transparent', 'inline', 'none');
               blockOtherRows();
             }
             if(event.target.classList.contains('save-button')){
-            
+
               params = event.target.value.split('-');
               saveInput(params);
               changeInput(params[0], true, 'transparent', 'inline', 'none');
@@ -227,19 +232,19 @@
           });
         }
       }
-      
+
       function blockOtherRows(row_num){
         var rows = document.querySelectorAll('tbody tr .edit-container'),
         i = 0, buttons;
         console.log(rows);
-        
+
         if(row_num) {
-          
+
           for(i = 0; i < rows.length; i++){
             buttons = rows[i].querySelectorAll('button');
             buttons[0].disabled = true;
           }
-        } 
+        }
         else {
           for(i = 0; i < rows.length; i++){
             buttons = rows[i].querySelectorAll('button');
@@ -247,38 +252,38 @@
           }
         }
       }
-      
+
       function changeInput(row_num, read, color, dspl_edit, dspl_prompt){
-      
+
         var current_row = document.querySelectorAll('tbody tr')[row_num],
         input = current_row.querySelectorAll('input'),
         prompt_ = current_row.querySelector('.prompt-container'),
         edit = current_row.querySelector('.edit-container');
-        
+
         input[0].readOnly = read;
         input[0].style.backgroundColor = color;
         input[1].readOnly = read;
         input[1].style.backgroundColor = color;
         edit.style.display = dspl_edit;
         prompt_.style.display = dspl_prompt;
-        
+
         console.log(row_num);
       }
-      
+
       function cancelInput(row_num){
         var input =  document.querySelectorAll('tbody tr')[row_num].querySelectorAll('input');
-        
-        input[0].value = table_value[row_num].white_pay;    
-        input[1].value = table_value[row_num].gray_pay;  
+
+        input[0].value = table_value[row_num].white_pay;
+        input[1].value = table_value[row_num].gray_pay;
       }
-      
+
       function saveInput(params){
         var row_num = params[0],
           id = params[1],
           s_row = params[2], // s_row - sheet row in google sheet doc
           input =  document.querySelectorAll('tbody tr')[row_num].querySelectorAll('input');
         console.log(input);
-        
+
         var mode = document.getElementById('mode-select').value,
           department_info = {
             mode: mode,
@@ -286,20 +291,18 @@
             gray_pay: input[1].valueAsNumber,
             row: s_row
           };
-    
+
         google.script.run.withSuccessHandler(onEditSuccess).savePayment(department_info);
       }
-      
+
       function onEditSuccess(message){
         var editMessage = document.querySelector("#edit_message");
         if(message == 'Success') {
           showMessage(editMessage, 'Запись успешно изменена','red');
         } else {
           showMessage(editMessage, message, 'green');
-        }    
+        }
       }
     </script>
   </body>
 </html>
-
-
