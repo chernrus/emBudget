@@ -44,7 +44,21 @@
       <div class="edit-panel w3-threequarter">
       
         <div id="table-container">
-          Идет загрузка таблицы ...
+          <table class="w3-table-all">
+            <thead>
+              <tr class="w3-light-grey">
+                <th>#</th>
+                <th type="name" class="0">Контракт<span class="arrow"></span></th>
+                <th type="project" class="0">Проект<span class="arrow"></span></th>
+                <th type="time" class="0">Планируемые<br>трудозатраты<span class="arrow"></span></th>
+                <th type="cost" class="0">Суммы затрат<span class="arrow"></span></th>
+                <th>Ред-ть</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Идет загрузка таблицы ...</td></tr>
+            </tbody>
+          </table>
         </div>
         <div class="info-panel">
           <div id="edit_message"></div>
@@ -73,6 +87,7 @@
         </div>
       </div>
     </div>
+    <?!= include('sort'); ?>
     <script defer>
       var mode = document.querySelector('#modeSelect'),
           contractsData = document.getElementById('ncontract');
@@ -159,6 +174,8 @@
     </script>
     
     <script>
+      
+      createSort();
       getTableValue();
       
       var table_value = [], params = [];
@@ -169,11 +186,12 @@
       }
       
       function renderTable(_table_value){
-        table_value = _table_value;
+        table_value = JSON.parse(_table_value);
         
-        console.log(table_value);
+        console.log(_table_value);
         
-        var table_container = document.getElementById('table-container'),
+        var table_container = document.querySelector('#table-container tbody'),
+            rows = table_container.querySelectorAll('tr'),
             html = '',
             i = 0,
             select_contract = '',
@@ -184,109 +202,83 @@
             options_contracts = document.getElementById('ncontract').innerHTML,
             options_projects = document.getElementById('project').innerHTML;    
          
-         html +='<table class="w3-table-all">' +
-                '<thead><tr class="w3-light-grey"><th>#</th><th>Контракт</th><th>Проект</th>' +
-                '<th>Планируемые трудозатраты</th><th>Суммы затрат</th><th>Ред-ть</th></thead><tbody>';
+        table_container.innerHTML = '<tr><td>Идет загрузка...</td><tr>';
         
-         for(i = 0; i < table_value.length; i++) {
+        for(i = 0; i < table_value.length; i++) {
            
-           select_contract = '<select class="select-contract" disabled>' + options_contracts + '</select>';
-           select_project = '<select class="select-project" disabled>' + options_projects + '</select>';
-           input_time = '<input type=number value="' + table_value[i].time + '" readonly>';
-           input_cost = '<input type=number value="' + table_value[i].cost + '" readonly>';
-           coordinate = i + '-' + table_value[i].id + '-' + table_value[i].row;
+          select_contract = '<select class="select-contract" disabled>' + options_contracts + '</select>';
+          select_project = '<select class="select-project" disabled>' + options_projects + '</select>';
+          input_time = '<input type=number value="' + table_value[i].time + '" readonly>';
+          input_cost = '<input type=number value="' + table_value[i].cost + '" readonly>';
+          coordinate = i + '-' + table_value[i].id + '-' + table_value[i].row;
            
-           html += '<tr><td>' + (i + 1) + '</td>' +
-             '<td>' + select_contract + '</td>' +
-             '<td>' + select_project + '</td>' +
-             '<td>' + input_time + '</td>' +
-             '<td>' + input_cost+ '</td>' +
-             '<td class="edit-cell">' +
-               '<div class="edit-container">' +
-                 '<button class="edit-button" value="' + i + '">✎</button>' + 	
-                 '<button class="delete-button" value="' + coordinate + '">✖</button></div>' +
-               '<div class="prompt-container"  style="display: none;">' +
-                 '<button class="save-button save" value="' + coordinate + '">✔</button>' +
-                 '<button class="cancel-button cancel" value="' + i + '">✘</button></div></td></tr>';
-         }
-         
-         html += '</tbody></table>';
-         
-         table_container.innerHTML = html;
-         
-         var rows_contract = document.querySelectorAll('td select.select-contract'),
-             rows_project = document.querySelectorAll('td select.select-project');
-         
-         for(i = 0; i < rows_contract.length; i++){
-           rows_contract[i].value = table_value[i].contract_id;
-           rows_project[i].value = table_value[i].project_id;
-           rows_contract[i].remove(0);
-           rows_project[i].remove(0);
-         }
-         
-         createObserver(table_container);
-      }
-      
-      function createObserver(table){
-        var i = 0,
-        edit_cell = table.querySelectorAll('.edit-cell');
-        
-        createSort(table);
-        
-        for(i = 0; i < edit_cell.length; i++ ){
-          edit_cell[i].addEventListener('click', function(event){
-            var row_num;
-            
-            if(event.target.classList.contains('edit-button')){
-            
-              row_num = event.target.value;
-              changeInput(row_num, false, '#ecffe6', 'none', 'inline-block');
-              blockOtherRows(row_num);
-            }
-            if(event.target.classList.contains('cancel-button')){
-            
-              row_num = event.target.value;
-              cancelInput(row_num);
-              changeInput(row_num, true, 'transparent', 'inline', 'none');
-              blockOtherRows();
-            }
-            if(event.target.classList.contains('save-button')){
-            
-              params = event.target.value.split('-');
-              saveInput(params);
-              changeInput(params[0], true, 'transparent', 'inline', 'none');
-              blockOtherRows();
-            }
-            if(event.target.classList.contains('delete-button')){
-              if(confirm("Вы точно хотите удалить отдел?")) {
-                params = event.target.value.split('-');
-                removeWTime();
-              }
-            }
-          });
+          html += '<tr><td>' + (i + 1) + '</td>' +
+            '<td>' + select_contract + '</td>' +
+            '<td>' + select_project + '</td>' +
+            '<td>' + input_time + '</td>' +
+            '<td>' + input_cost+ '</td>' +
+            '<td class="edit-cell">' +
+              '<div class="edit-container">' +
+                '<button class="edit-button" value="' + i + '">✎</button>' + 	
+                '<button class="delete-button" value="' + coordinate + '">✖</button></div>' +
+              '<div class="prompt-container"  style="display: none;">' +
+                '<button class="save-button save" value="' + coordinate + '">✔</button>' +
+                '<button class="cancel-button cancel" value="' + i + '">✘</button></div></td></tr>';
         }
-      }
+         
+        html += '</tbody></table>';
+         
+        table_container.innerHTML = html;
+         
+        var rows_contract = document.querySelectorAll('td select.select-contract'),
+            rows_project = document.querySelectorAll('td select.select-project');
+         
+        for(i = 0; i < rows_contract.length; i++){
+          rows_contract[i].value = table_value[i].contract_id;
+          rows_project[i].value = table_value[i].project_id;
+          rows_contract[i].remove(0);
+          rows_project[i].remove(0);
+        }
+         
+        createObserver(table_container);
+     }
       
-      function createSort(table){
-    
-        var head = table.querySelectorAll('tr th'),
-            nameHead = head[1],
-            projHead = head[2],
-            timeHead = head[3],
-            costHead = head[4];
-        
-        nameHead.onclick = function(){
-          renderTable(table_value.sort(compareByName));
-        };
-        projHead.onclick = function(){
-          renderTable(table_value.sort(compareByProject));
-        };
-        timeHead.onclick = function(){
-          renderTable(table_value.sort(compareByTime));
-        };
-        costHead.onclick = function(){
-          renderTable(table_value.sort(compareByCost));
-        };
+     function createObserver(table){
+       var i = 0,
+           edit_cell = table.querySelectorAll('.edit-cell');
+
+       for(i = 0; i < edit_cell.length; i++ ){
+         edit_cell[i].addEventListener('click', function(event){
+           var row_num;
+            
+           if(event.target.classList.contains('edit-button')){
+            
+             row_num = event.target.value;
+             changeInput(row_num, false, '#ecffe6', 'none', 'inline-block');
+             blockOtherRows(row_num);
+           }
+           if(event.target.classList.contains('cancel-button')){
+           
+             row_num = event.target.value;
+             cancelInput(row_num);
+             changeInput(row_num, true, 'transparent', 'inline', 'none');
+             blockOtherRows();
+           }
+           if(event.target.classList.contains('save-button')){
+           
+             params = event.target.value.split('-');
+             saveInput(params);
+             changeInput(params[0], true, 'transparent', 'inline', 'none');
+             blockOtherRows();
+           }
+           if(event.target.classList.contains('delete-button')){
+             if(confirm("Вы точно хотите удалить отдел?")) {
+               params = event.target.value.split('-');
+               removeWTime();
+             }
+           }
+         });
+       }
       }
       
       function blockOtherRows(row_num){

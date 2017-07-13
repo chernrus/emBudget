@@ -42,7 +42,20 @@
       <div class="edit-panel w3-threequarter">
 
         <div id="table-container">
-            Идет загрузка таблицы ...
+            <table class="w3-table-all">
+              <thead>
+                <tr class="w3-light-grey">
+                  <th>#</th>
+                  <th type="name" class="0">Проект<span class="arrow"></span></th>
+                  <th type="date_from" class="0">Дата начала<span class="arrow"></span></th>
+                  <th type="date_to" class="0">Дата окончания<span class="arrow"></span></th>
+                  <th>Редактирование</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>Идет загрузка таблицы ...</td></tr>
+              </tbody>
+            </table>
         </div>
         <div class="info-panel">
             <div id="edit_message"></div>
@@ -72,7 +85,7 @@
     </div>
 
     </div>
-
+    <?!= include('sort'); ?>
     <script>
       function send(form){
         var projectInfo = {
@@ -123,6 +136,7 @@
       })
 
       getTableValue();
+      createSort();
 
       var table_value = [], params = [];
 
@@ -137,22 +151,29 @@
         table_value = JSON.parse(_table_value);
         console.log(table_value);
 
-        var table_container = document.getElementById('table-container'),
+        var table_container = document.querySelector('#table-container tbody'),
+            rows = table_container.querySelectorAll('tr'),
             html = '',
             i = 0,
             input = '',
             input_dateFrom = '',
             input_dateTo = '',
             coordinate = '';
-
-        html +='<table class="w3-table-all">' +
-            '<thead><tr class="w3-light-grey"><th>#</th><th>Проект</th><th>Дата начала</th><th>Дата окончания</th><th>Редактирование</th></thead><tbody>';
+          
+        console.log($('.date_from'));
+        
+        if($('.date_from').length > 0) {
+          console.log('remove!!');
+          destroyPicker(rows.length);
+        }
+        
+        table_container.innerHTML = '<tr><td>Идет загрузка...</td><tr>';
 
         for(i = 0; i < table_value.length; i++) {
           input = '<input type=text value="' + table_value[i].name + '" readonly>';
           coordinate = i + '-' + table_value[i].id + '-' + table_value[i].row;
-          input_dateFrom = '<input class="date_from" type=text value="' + dateToString(table_value[i].date_from) + '" readonly disabled>';
-          input_dateTo = '<input class="date_to" type=text value="' + dateToString(table_value[i].date_to) + '" readonly disabled>';
+          input_dateFrom = '<input id="from' + i + '" class="date_from" type=text value="' + dateToString(table_value[i].date_from) + '" readonly disabled>';
+          input_dateTo = '<input id="to' + i + '" class="date_to" type=text value="' + dateToString(table_value[i].date_to) + '" readonly disabled>';
           html += '<tr class="progress-' + table_value[i].progress + '">' +
             '<td>' + (i + 1) + '</td>' +
             '<td>' + input + '</td>' +
@@ -182,6 +203,15 @@
 
         createObserver(table_container);
       }
+      
+      function destroyPicker(length){
+        var i = 0;
+        
+        for(i = 0; i < length; i++){
+          $('#from'+i).datepicker().data('datepicker').destroy();
+           $('#to'+i).datepicker().data('datepicker').destroy();
+        }
+      };
 
       function createObserver(table){
         var i = 0,

@@ -41,7 +41,20 @@
       
       <div class="edit-panel w3-container w3-threequarter">
         <div id="table-container">
-          Идет загрузка таблицы ...
+          <table class="w3-table-all w3-centered">
+            <thead>
+              <tr class="w3-light-grey">
+              <th>#</th>
+              <th type="name" class="0">Сотрудник<span class="arrow"></span></th>
+              <th type="phone" class="0">Телефон<span class="arrow"></span></th>
+              <th type="dep_name" class="0">Отдел<span class="arrow"></span></th>
+              <th type="status" class="0">Статус<span class="arrow"></span></th>
+              <th>Редактировать</th>
+            </thead>
+            <tbody>
+              <tr><td>Идет загрузка таблицы ...</td><tr>
+            </tbody>
+          </table>
         </div>
         
         <div class="info-panel">
@@ -73,6 +86,7 @@
       </div>
       
     </div>
+    <?!= include('sort'); ?>
     <script>
       var mode = document.querySelector('#mode-select'),
           table_value = [],
@@ -154,6 +168,8 @@
     <script>
      
      getTableValue();
+     createSort();
+     
      $("#delete_date").datepicker({
         autoClose: true,
         dateFormat: 'dd.mm.yyyy',
@@ -174,8 +190,8 @@
       function renderTable(_table_value){
         console.log(_table_value);
          console.log('--');
-        table_value = _table_value;
-        var table_container = document.getElementById('table-container'),
+        table_value = JSON.parse(_table_value);
+        var table_container = document.querySelector('#table-container tbody'),
             html = '',
             i = 0,
             input_name = '',
@@ -185,13 +201,7 @@
             select_status = '',
             coordinate = '';
        
-        html +='<table class="w3-table-all w3-centered">' +
-            '<thead><tr class="w3-light-grey"><th>#</th>' +
-            '<th>Сотрудник</th>' +
-            '<th>Телефон</th>' +
-            '<th>Отдел</th>' +
-            '<th>Статус</th>' +
-            '<th>Редактировать</th></thead><tbody>';
+        table_container.innerHTML = '<tr><td>Идет загрузка...</td><tr>';
             
         for(i = 0; i < table_value.length; i++) {
           input_name = '<input class="w3-input edit-name" type=text value="' + table_value[i].name + '" readonly>';
@@ -239,19 +249,8 @@
        function createObserver(table){
          
          var i = 0,
-            edit_cell = table.querySelectorAll('.edit-cell'),
-            head =  document.querySelectorAll('tr th'),
-            empHead = head[1],
-            depHead = head[3];
-          
-          empHead.onclick = function(){
-            renderTable(table_value.sort(compareByName));
-          };
-          
-          depHead.onclick = function(){
-            renderTable(table_value.sort(compareByDep));
-          };
-
+            edit_cell = table.querySelectorAll('.edit-cell');
+            
           for(i = 0; i < edit_cell.length; i++ ){
             edit_cell[i].addEventListener('click', function(event){
               var row_num;

@@ -10,7 +10,7 @@ function getDepTable() {
   var value = openDocument(FILEID.department, EM.mode).getDataRange().getValues();
       table_value = createDepModel(value);
 
-  return table_value.sort(compareStr);//mode + ' - it\'s mode. It\'s working!';
+  return JSON.stringify(table_value.sort(compareStr));//mode + ' - it\'s mode. It\'s working!';
 }
 
 
@@ -93,7 +93,7 @@ function getEmplTable(_mode) {
       value = sheet.getDataRange().getValues(),
       table_value = createEmplModel(value);
 
-  return table_value.sort(compareStr);
+  return JSON.stringify(table_value.sort(compareStr));
 }
 
 
@@ -503,7 +503,7 @@ function getProvisionTable(_mode){
       value = sheet.getDataRange().getValues(),
       table_value = createProvisionModel(value);
 
-  return table_value.sort(compareStr);
+  return JSON.stringify(table_value.sort(compareStr));
 }
 
 /**
@@ -511,14 +511,16 @@ function getProvisionTable(_mode){
 */
 function createProvisionModel(data) {
   var i = 0,
-      result = [];
-
+      result = [],
+      contract = openDocument(FILEID.contract, mode).getDataRange().getValues(),
+      project = openDocument(FILEID.project, mode).getDataRange().getValues();
+  
   for(i = 1; i < data.length; i++){
     result.push({
       contract_id: data[i][0],
       project_id: data[i][1],
-      name: getName(data[i][0], 'contract'),
-      project: getName(data[i][1], 'project'),
+      name: getName(data[i][0], contract),
+      project: getName(data[i][1], project),
       time: data[i][2],
       cost: data[i][3],
       row: i + 1

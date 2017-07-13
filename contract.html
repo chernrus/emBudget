@@ -10,7 +10,7 @@
   </head>
   <body>
     <div class="header w3-container"> 
-      <h2>Контракты</h2>
+      <h2>Договоры</h2>
       <div class="w3-bar">
         <a href='<?=url?>?page=main&title=Бюджет' class="w3-bar-item w3-button w3-margin-bottom w3-teal">На главную</a>
       </div>
@@ -63,7 +63,26 @@
       <div class="edit-panel">
         
         <div id="table-container">
-          Идет загрузка таблицы ...
+          <table class="w3-table-all">
+            <thead>
+              <tr class="w3-light-grey">
+                <th>#</th>
+                <th type="name" class="0">Номер<br>договора<span class="arrow"></span></th>
+                <th type="organization" class="0">Организация<span class="arrow"></span></th>
+                <th type="type" class="0">Тип<span class="arrow"></span></th>
+                <th type="status" class="0">Статус<span class="arrow"></span></th>
+                <th type="time" class="0">План-е<br>труд-ты<span class="arrow"></span></th>
+                <th type="cost" class="0">Полная<br>цена<span class="arrow"></span></th>
+                <th type="date_from" class="0">Дата начала<span class="arrow"></span></th>
+                <th type="date_to" class="0">Дата окончания<span class="arrow"></span></th>
+                <th type="document" class="0">Документы<span class="arrow"></span></th>
+                <th>Ред-ть</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Идет загрузка таблицы ...</td></tr>
+            </tbody>
+          </table>
         </div>
         <div class="info-panel">
           <div id="edit_message"></div>
@@ -72,6 +91,7 @@
 
 
     </div>
+    <?!= include('sort'); ?>
     <script>
       $("#dateTo").datepicker({
         position: "right top",
@@ -144,6 +164,7 @@
     </script>
     <script>
       getTableValue();
+      createSort();
       
       var table_value = [], params = [];
       
@@ -157,76 +178,88 @@
         
         console.log(table_value);
         
-        var table_container = document.getElementById('table-container'),
-                html = '',
-                i = 0,
-                input_name = '',
-                input_org = '',
-                input_time = '',
-                input_cost = '',
-                input_from = '',
-                input_to = '',
-                input_doc = '',
-                select_type = '<select class="select-type" disabled><option value="1">Приход</option><option value="-1">Расход</option></select>',
-                select_status = '<select class="select-status" disabled><option>Новый</option><option>На исполнение</option><option>Исполнен</option></select>',
-                coordinate = '';
+        var table_container = document.querySelector('#table-container tbody'),
+            rows = table_container.querySelectorAll('tr'),
+            html = '',
+            i = 0,
+            input_name = '',
+            input_org = '',
+            input_time = '',
+            input_cost = '',
+            input_from = '',
+            input_to = '',
+            input_doc = '',
+            select_type = '<select class="select-type" disabled><option value="1">Приход</option><option value="-1">Расход</option></select>',
+            select_status = '<select class="select-status" disabled><option>Новый</option><option>На исполнение</option><option>Исполнен</option></select>',
+            coordinate = '';
             
-         html +='<table class="w3-table-all">' +
-                '<thead><tr class="w3-light-grey"><th>Контракт</th><th>Организация</th><th>Тип</th><th>Статус</th><th>План-е<br>труд-ты</th>' +
-                '<th>Полная<br>цена</th><th>Дата начала</th><th>Дата окончания</th><th>Документы</th><th>Ред-ть</th></thead><tbody>';
+        if($(".date_from").length > 0) {
+          destroyPicker(rows.length);
+        }
         
-         for(i = 0; i < table_value.length; i++) {
-           console.log(table_value[i].time );
-           coordinate = i + '-' + table_value[i].id + '-' + table_value[i].row;
-           input_name = '<input type="text" value="' + table_value[i].name + '" readonly>';
-           input_org = '<input type="text" value="' + table_value[i].organization + '" readonly>';
-           input_time = '<input type="number" value="' + table_value[i].time + '" readonly>';
-           input_cost = '<input type="number" value="' + table_value[i].cost * table_value[i].type + '" readonly>';
-           input_from = '<input class="date_from" type="text" value="' + dateToString(table_value[i].date_from) + '" readonly>';
-           input_to = '<input class="date_to" type=text value="' + dateToString(table_value[i].date_to) + '" readonly>';
-           input_doc = '<input type="text" value="' + table_value[i].document + '" readonly>';      
-           
-           html += '<tr><td>' + input_name + '</td>' +
-             '<td>' + input_org + '</td>' +
-             '<td>' + select_type + '</td>' +
-             '<td>' + select_status + '</td>' +
-             '<td>' + input_time + '</td>' +
-             '<td>' + input_cost + '</td>' +
-             '<td>' + input_from + '</td>' +
-             '<td>' + input_to + '</td>' +
-             '<td>' + input_doc + '</td>' +
-             '<td class="edit-cell">' +
-               '<div class="edit-container">' +
-                 '<button class="edit-button" value="' + i + '">✎</button></div>' + 	
-               '<div class="prompt-container"  style="display: none;">' +
-                 '<button type="submit" class="save-button save" value="' + coordinate + '">✔</button>' +
-                 '<button class="cancel-button cancel" value="' + i + '">✘</button></div></td></tr>';
-         }
-         
-         html += '</tbody></table>';
-       
-         table_container.innerHTML = html;
+        table_container.innerHTML = 'Идет загрузка таблицы ...';
         
-         $(".date_from").datepicker({
-           autoClose: true
-         });
+        for(i = 0; i < table_value.length; i++) {
+          console.log(table_value[i].time );
+          coordinate = i + '-' + table_value[i].id + '-' + table_value[i].row;
+          input_name = '<input type="text" value="' + table_value[i].name + '" readonly>';
+          input_org = '<input type="text" value="' + table_value[i].organization + '" readonly>';
+          input_time = '<input type="number" value="' + table_value[i].time + '" readonly>';
+          input_cost = '<input type="number" value="' + table_value[i].cost * table_value[i].type + '" readonly>';
+          input_from = '<input class="from' + i + '" class="date_from" type="text" value="' + dateToString(table_value[i].date_from) + '" readonly>';
+          input_to = '<input class="to' + i + '" type=text value="' + dateToString(table_value[i].date_to) + '" readonly>';
+          input_doc = '<input type="text" value="' + table_value[i].document + '" readonly>';      
+          
+          html += '<tr><td>' + (i+1) + '</td><td>' + input_name + '</td>' +
+            '<td>' + input_org + '</td>' +
+            '<td>' + select_type + '</td>' +
+            '<td>' + select_status + '</td>' +
+            '<td>' + input_time + '</td>' +
+            '<td>' + input_cost + '</td>' +
+            '<td>' + input_from + '</td>' +
+            '<td>' + input_to + '</td>' +
+            '<td>' + input_doc + '</td>' +
+            '<td class="edit-cell">' +
+              '<div class="edit-container">' +
+                '<button class="edit-button" value="' + i + '">✎</button></div>' + 	
+              '<div class="prompt-container"  style="display: none;">' +
+                '<button type="submit" class="save-button save" value="' + coordinate + '">✔</button>' +
+                '<button class="cancel-button cancel" value="' + i + '">✘</button></div></td></tr>';
+        }
+        
+        html += '</tbody></table>';
+        
+        table_container.innerHTML = html;
+        
+        $(".date_from").datepicker({
+          autoClose: true
+        });
+        
+        $(".date_to").datepicker({
+          autoClose: true
+        });
+        
+        var rows_type = document.querySelectorAll('td select.select-type'),
+            rows_status = document.querySelectorAll('td select.select-status');
          
-         $(".date_to").datepicker({
-           autoClose: true
-         });
-         
-         var rows_type = document.querySelectorAll('td select.select-type'),
-             rows_status = document.querySelectorAll('td select.select-status');
-         
-         for(i = 0; i < rows_type.length; i++){
-           rows_type[i].value = table_value[i].type;
-           rows_status[i].value = table_value[i].status;
-         }
+        for(i = 0; i < rows_type.length; i++){
+          rows_type[i].value = table_value[i].type;
+          rows_status[i].value = table_value[i].status;
+        }
             
-         createObserver(table_container);
+        createObserver(table_container);
       }
       
-       function dateToString(_date){
+      function destroyPicker(length){
+        var i = 0;
+        
+        for(i = 0; i < length; i++){
+          $('#from'+i).datepicker().data('datepicker').destroy();
+           $('#to'+i).datepicker().data('datepicker').destroy();
+        }
+      };
+      
+      function dateToString(_date){
         if(_date != '') {
           var date = new Date(_date);
           
@@ -242,8 +275,6 @@
       function createObserver(table){
         var i = 0,
         edit_cell = table.querySelectorAll('.edit-cell');
-        
-        createSort(table);   
         
         for(i = 0; i < edit_cell.length; i++ ){
           edit_cell[i].addEventListener('click', function(event){
@@ -269,48 +300,6 @@
             }
           });
         }
-      }
-      
-      function createSort(table){
-    
-        var head = table.querySelectorAll('tr th'),
-            nameHead = head[0],
-            orgHead = head[1],
-            typeHead = head[2],
-            statusHead = head[3],
-            timeHead = head[4],
-            costHead = head[5],
-            fromHead = head[6],
-            toHead = head[7],
-            docHead = head[8];
-        
-        nameHead.onclick = function(){
-          renderTable(JSON.stringify(table_value.sort(compareByName)));
-        };
-        orgHead.onclick = function(){
-          renderTable(JSON.stringify(table_value.sort(compareByOrganization)));
-        };
-        typeHead.onclick = function(){
-          renderTable(JSON.stringify(table_value.sort(compareByType)));
-        };
-        statusHead.onclick = function(){
-          renderTable(JSON.stringify(table_value.sort(compareByStatus)));
-        };
-        timeHead.onclick = function(){
-          renderTable(JSON.stringify(table_value.sort(compareByTime)));
-        };
-        costHead.onclick = function(){
-          renderTable(JSON.stringify(table_value.sort(compareByCost)));
-        };
-        fromHead.onclick = function(){
-          renderTable(JSON.stringify(table_value.sort(compareByDateFrom)));
-        };
-        toHead.onclick = function(){
-          renderTable(JSON.stringify(table_value.sort(compareByDateTo)));
-        };
-        docHead.onclick = function(){
-          renderTable(JSON.stringify(table_value.sort(compareByDocument)));
-        };
       }
       
       function blockOtherRows(row_num){

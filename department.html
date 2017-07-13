@@ -37,7 +37,19 @@
       <div class="edit-panel w3-container w3-twothird">
         
         <div id="table-container">
-          Идет загрузка таблицы ...
+          <table class="w3-table-all"> 
+            <thead>
+              <tr class="w3-light-grey">
+                <th>#</th>
+                <th type="name" class="0">Отдел<span class="arrow"></span></th>
+                <th type="people_count" class="0">Количество работников<span class="arrow"></span></th>
+                <th>Редактировать</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Идет загрузка таблицы ...</td></tr>
+            </tbody>
+          </table>
         </div>
         <div class="info-panel">
           <div id="edit_message"></div>
@@ -68,6 +80,7 @@
       </div>
       
     </div>
+    <?!= include('sort'); ?>
     <script>
       'use strict';
       
@@ -118,6 +131,7 @@
       })
       
       getTableValue();
+      createSort();   
       
       var table_value = [], params = [];
       
@@ -129,15 +143,16 @@
       document.querySelector('.confirm-date').addEventListener('click', setDate);
       
       function renderTable(_table_value){
-        table_value = _table_value;
-        var table_container = document.getElementById('table-container'),
+        table_value = JSON.parse(_table_value);
+        var table_container = document.querySelector('#table-container tbody'),
             html = '',
             i = 0,
             input = '',
             coordinate = '';
         
-        html +='<table class="w3-table-all">' +
-            '<thead><tr class="w3-light-grey"><th>#</th><th>Отдел</th><th>Количество работников</th><th>Редактировать</th></thead><tbody>';
+        table_container.innerHTML = '<tr><td>Идет загрузка...</td><tr>';
+//        html +='<table class="w3-table-all">' +
+//            '<thead><tr class="w3-light-grey"><th>#</th><th>Отдел</th><th>Количество работников</th><th>Редактировать</th></tr></thead><tbody>';
             
         for(i = 0; i < table_value.length; i++) {
           input = '<input type=text value="' + table_value[i].name + '" readonly>';

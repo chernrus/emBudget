@@ -56,7 +56,7 @@
       mode.addEventListener('change', getListForSelect);
       
       function getListForSelect(){
-        google.script.run.withSuccessHandler(addOptions).getEmployeeList(mode.value, 'employee');
+        google.script.run.withSuccessHandler(addOptions).getList(mode.value, 'employee');
       }
       
       //Callback
