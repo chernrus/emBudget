@@ -341,9 +341,11 @@
       function dateToString(_date){
         if(_date != '') {
           var date = new Date(_date);
-        
+          console.log((date.getDate() > 9 ? date.getDate() : '0' + date.getDate()) +
+            '.' + ((date.getMonth() + 1) > 9 ? (date.getMonth() + 1) : '0' + (date.getMonth() + 1)) +
+            '.' + date.getFullYear());
           return (date.getDate() > 9 ? date.getDate() : '0' + date.getDate()) +
-            '.' + ((date.getMonth() + 1) > 9 ? (date.getDate() + 1) : '0' + (date.getMonth() + 1)) +
+            '.' + ((date.getMonth() + 1) > 9 ? (date.getMonth() + 1) : '0' + (date.getMonth() + 1)) +
             '.' + date.getFullYear();
         }
         else {
