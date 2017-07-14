@@ -196,16 +196,20 @@ function addContract(contractInfo){
   var sheet = ss.getSheetByName(contractInfo.mode);
   var value = sheet.getDataRange().getValues(),
       cellsFormat = [
-        ['##0', '@', '@', '@', '0.0', '0.00', 'dd.mm.yyyy', 'dd.mm.yyyy', '@']
+        ['##0', '@', '@', '@', '##0', '@', '0.0', '0.00', 'dd.mm.yyyy', 'dd.mm.yyyy', '@']
       ];
 
   contractInfo.ncontract = cleanStr(contractInfo.ncontract);
-  contractInfo.id = value[0][11]+1;
+  contractInfo.id = value[0][13]+1;
   
-  if(contractInfo.ncontract == '' ) {
+  
+  if(contractInfo.name == '' ) {
+    return 'Введите название контракта';
+  }
+  else if(contractInfo.ncontract == '' ) {
     return MESSAGE.empty_contr;
   } 
-  else if(checkOverlap(contractInfo.ncontract, value)) {
+  else if(checkOverlap(contractInfo.name, value)) {
     return  MESSAGE.overlap_contr;
   } 
   else if(contractInfo.type == 'opt') {
@@ -230,32 +234,56 @@ function addContract(contractInfo){
     return MESSAGE.overlap_date;
   } 
   else {
+    Logger.log(contractInfo.project);
     
-    sheet.getRange(sheet.getLastRow()+1, 1, 1, 9).setValues(
+    sheet.getRange(sheet.getLastRow()+1, 1, 1, 11).setValues(
       [[
         contractInfo.id,
+        contractInfo.name,
         contractInfo.ncontract, 
         contractInfo.organization, 
+        contractInfo.type,
         contractInfo.status, 
         contractInfo.planTime * 1, 
-        contractInfo.fullCost * contractInfo.type, 
+        contractInfo.fullCost,
         contractInfo.dateFrom, 
         contractInfo.dateTo, 
         contractInfo.document
       ]]
     );
     
-    sheet.getRange(sheet.getLastRow(), 1, 1, 9).setNumberFormats(cellsFormat);
-    sheet.getRange(1, 12).setValue(contractInfo.id);
+    sheet.getRange(sheet.getLastRow(), 1, 1, 11).setNumberFormats(cellsFormat);
+    sheet.getRange(1, 14).setValue(contractInfo.id);
+    if(contractInfo.project != 'opt') {
+      Logger.log('2');
+
+      addProvision({
+        mode: contractInfo.mode,
+        ncontract: contractInfo.id, 
+        projectId: contractInfo.project, 
+        planTime: contractInfo.planTime * 1, 
+        projectCost: contractInfo.fullCost,
+      });
+    }
     
     return MESSAGE.success;
   } 
+}
+
+function checkOverlapConract(name, value) {
+  for(var i = 0; i < value.length; i++) {
+    if(name.toLowerCase() == value[i][2].toLowerCase()) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /*
   Обеспечение контрактов
 */
 function addProvision(provisionInfo){
+  Logger.log(provisionInfo);
   var ss = SpreadsheetApp.openById(FILEID.provision);
   var sheet = ss.getSheetByName(provisionInfo.mode);
   var value = sheet.getDataRange().getValues(),
@@ -270,17 +298,23 @@ function addProvision(provisionInfo){
   
   if(provisionInfo.ncontract == ''){
     return MESSAGE.empty_contr;
-  } else if(provisionInfo.projectId == 'opt'){
+  } 
+  else if(provisionInfo.projectId == 'opt'){
     return MESSAGE.choose_prj;
-  } else if(!provisionInfo.planTime){
+  } 
+  else if(!provisionInfo.planTime){
     return  MESSAGE.empty_planTime;
-  } else if(checkExcessTime(provisionInfo.planTime, provisionInfo.ncontract, value, provisionInfo.mode)){
+  } 
+  else if(checkExcessTime(provisionInfo.planTime, provisionInfo.ncontract, value, provisionInfo.mode)){
     return  MESSAGE.excess_time;
-  } else if(!provisionInfo.projectCost){
+  } 
+  else if(!provisionInfo.projectCost){
     return MESSAGE.empty_projectCost;
-  } else if(checkExcessCost(provisionInfo.projectCost, provisionInfo.ncontract, value, provisionInfo.mode)){
+  } 
+  else if(checkExcessCost(provisionInfo.projectCost, provisionInfo.ncontract, value, provisionInfo.mode)){
     return  MESSAGE.excess_cost;
-  } else {
+  } 
+  else {
     
      sheet.getRange(sheet.getLastRow()+1, 1, 1, 4).setValues(
       [[
@@ -339,7 +373,7 @@ function checkExcessTime(provisionTime, ncontract, provisionValue, mode, row) {
   planTime = getPlanTime(ncontract, mode);
   factTime = getFactTime(ncontract, provisionValue, row);
   
-//  Logger.log(planTime + ' -- ' + factTime);
+  Logger.log(planTime + ' -- ' + factTime + ' + ' + provisionTime);
   diff = (planTime - (factTime + (+provisionTime)));
   Logger.log(diff);
   return (diff < 0);
@@ -354,7 +388,8 @@ function getPlanTime(contractId, mode) {
   
   for(i = 1; i < contractValue.length; i++){
     if(contractId == contractValue[i][0]){
-      time = contractValue[i][4];
+      Logger.log(contractValue[i]);
+      time = contractValue[i][6];
     }
   }
   
@@ -396,7 +431,7 @@ function getPlanCost(contractId, mode){
   
   for(i = 1; i < contractValue.length; i++){
     if(contractId == contractValue[i][0]){
-      cost = contractValue[i][5];
+      cost = contractValue[i][7];
     }
   }
   
@@ -479,5 +514,50 @@ function getData(year) {
   return data;  
 }
 
-
+function addPremium(data) {
+  Logger.log(data);
+  
+  var premiumInfo = JSON.parse(data),
+      premium = openDocument(FILEID.premium, premiumInfo.mode),
+      value = premium.getDataRange().getValues(),
+      defOption = 'opt';
+      
+  premiumInfo.id = value[0][8] + 1;
+  
+  if(premiumInfo.department == defOption) {
+    return MESSAGE.choose_dep
+  }
+  else if(premiumInfo.employee == defOption) {
+    return MESSAGE.choose_empl
+  }
+  else if(premiumInfo.project == defOption) {
+    return MESSAGE.choose_prj
+  }
+  else if(!premiumInfo.monthDate) {
+    return MESSAGE.choose_month;
+  }
+  else if(!premiumInfo.premium || Object.prototype.toString.call(+premiumInfo.premium) !== '[object Number]') {
+    return MESSAGE.empty_premium;
+  }
+  else {
+    Logger.log(premiumInfo.month);  
+//    premiumInfo.month = new Date(premiumInfo.month);
+//    Logger.log(premiumInfo.month);
+    premium.getRange(premium.getLastRow()+1, 1, 1, 6).setValues(
+      [[
+        premiumInfo.id, 
+        premiumInfo.department, 
+        premiumInfo.employee, 
+        premiumInfo.project, 
+        premiumInfo.monthText,
+        premiumInfo.premium
+      ]]
+    );
+    premium.getRange(premium.getLastRow(), 6).setNumberFormat('0.00');
+    premium.getRange(1, 9).setValue(premiumInfo.id);
+    premium.getRange(premium.getLastRow(), 7).setValue(true);
+    
+    return MESSAGE.success;
+  }
+}
 

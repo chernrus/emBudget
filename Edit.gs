@@ -408,8 +408,6 @@ function getContractValue(_mode){
       value = sheet.getDataRange().getValues(),
       table_value = createContractModel(value);
 
-  Logger.log(table_value);
-
   return JSON.stringify(table_value.sort(compareStr));
 }
 
@@ -424,14 +422,15 @@ function createContractModel(data) {
     result.push({
       id: data[i][0],
       name: data[i][1],
-      organization: data[i][2],
-      type: (data[i][5] < 0) ? -1 : 1,
-      status: data[i][3],
-      time: data[i][4],
-      cost: data[i][5],
-      date_from: data[i][6],
-      date_to: data[i][7],
-      document: data[i][8],
+      code: data[i][2],
+      organization: data[i][3],
+      type: data[i][4],
+      status: data[i][5],
+      time: data[i][6],
+      cost: data[i][7],
+      date_from: data[i][8],
+      date_to: data[i][9],
+      document: data[i][10],
       row: i + 1
     });
   }
@@ -646,4 +645,41 @@ function getCurrentAnte(w_pay, g_pay, wDaysTable) {
       w_days = wDaysTable[month + 1][1];
 
   return (w_pay + g_pay) / (w_days * 8);
+}
+
+function getPremiumTable(_mode) {
+  EM.mode = _mode;
+  var sheet = openDocument(FILEID.premium, EM.mode),
+      value = sheet.getDataRange().getValues(),
+      table_value = createPremiumModel(value);
+
+  Logger.log(table_value);
+//  return JSON.stringify(table_value);
+  return JSON.stringify(table_value.sort(compareStr));
+}
+
+function createPremiumModel(data) {
+  var i = 0,
+      result = [],
+      prjV = openDocument(FILEID.project, EM.mode).getDataRange().getValues(),
+      depV = openDocument(FILEID.department, EM.mode).getDataRange().getValues(),
+      empV = openDocument(FILEID.employee, EM.mode).getDataRange().getValues();
+
+  data.forEach(function(row, i, value){
+
+    if(row[6] && i != 0) {
+      result.push({
+          id: row[0],
+          name: getName(row[2], empV),
+          dep_name: getName(row[1], depV),
+          project_name: getName(row[3], prjV),
+          project_id: row[3],
+          month: row[4],
+          premium: row[5],
+          row: i + 1
+      });
+    }
+  });
+
+  return result;
 }

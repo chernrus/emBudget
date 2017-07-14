@@ -6,7 +6,8 @@ var FILEID = {
     contract: '1F3nJ9uxEaKTbmin6ixnhBVkm7fHH06WLMaq8XVkAwoY',
     payment: '1E8PyZB61S_V7C0u9yJaVVJrJQdWFvFuvCvyBht1-Dzw',
     provision: '1pXCTED90tEU65zBL5tVdNWftAzkczAufkhtlNPtscqo',
-    workDays: '1JGdMmLlebe4K_qYa-VvaqJ9T_4HA6hhXIyPyvf_NCeQ'
+    workDays: '1JGdMmLlebe4K_qYa-VvaqJ9T_4HA6hhXIyPyvf_NCeQ',
+    premium: '105Dvbb515Y9N6Yxn2QbzWuMEWqzw5eWTlSCT0egSfKE' 
   },
   mode = 'Разработка';
 //  SS = {},
