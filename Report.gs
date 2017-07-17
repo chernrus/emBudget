@@ -2,9 +2,9 @@
 var MONTHS = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
 
 function getDataForReport(data){
-  
+
   var report_info = JSON.parse(data);
-  
+
   if(!report_info.monthFrom){
     return {
       type: 'error',
@@ -21,18 +21,17 @@ function getDataForReport(data){
       value: MESSAGE.overlap_date
     };
   }
-  
-  var workSs = SpreadsheetApp.openById('1337mhqonmSYhKVnCj72reSdRmE9_2MdKfuVrNeXqU20'),
-      work = workSs.getSheets()[0],
-      projectSS = SpreadsheetApp.openById('15UvxDCHk6QnPhyGFftmvKIPsUMX1x9jKUg5HmoPUzFM'),
-      projectSheet = projectSS.getSheets()[0],
-      projectValue = projectSheet.getDataRange().getValues(),
-      
-      valueWork = work.getDataRange().getValues(),
+
+  var workTime = openDocument(FILEID.workTime, 'Разработка'),
+      project = openDocument(FILEID.project, 'Разработка'),
+      workTimeValue = workTime.getDataRange().getValues(),
+      projectValue = project.getDataRange().getValues(),
+
+
       allDepartments = getDepartments(),
       allEmployees = getEmployees(allDepartments),
       allProjects = getProjects(projectValue),
-     
+
       sum_hours = 0,
       sum_pay = 0,
       sum_outlay = 0,
@@ -43,7 +42,7 @@ function getDataForReport(data){
       dep_pay = 0,
       dep_outlay = 0,
       report = [],
-      
+
       periods = getPeriods(report_info.monthFrom, report_info.monthTo),
       result = [],
       departments = [],
@@ -58,10 +57,10 @@ function getDataForReport(data){
         mths: [],
         prjs: [['@', '0.0', '0.00', '0.00']]
       };
-      
+
 //      Logger.log(allProjects);
 //      Logger.log(allEmployees);
-  
+
   if(report_info.depId == 'opt') {
      departments = allDepartments.sort(compareStr);
   } else {
@@ -69,28 +68,28 @@ function getDataForReport(data){
       id: report_info.depId,
       name: getNameRep(report_info.depId, allDepartments)
     };
-  }   
-  
+  }
+
   var ssNew = SpreadsheetApp.create("Report"),
       sheet = ssNew.getSheets()[0];
-  
+
   range = sheet.getRange(sheet.getLastRow() + 1, 1, 1,4);
   range.setValues([['Отчет по сотрудникам и отделам', 'За период:', report_info.fromTxt, report_info.toTxt]]);
 
   for(var i = 0; i < departments.length; i++){
-    range = sheet.getRange(sheet.getLastRow() + 1, 1, 1,4);
-    range.setValues([[departments[i].name, '', '', '']]);
+    range = sheet.getRange(sheet.getLastRow() + 1, 1, 1,7);
+    range.setValues([[departments[i].name, '', '', '', '', '', '']]);
     range.setBackground('#C0C0C0');
     range.merge();
     range.setFontWeight("bold");
-    
+
     dep_hours = 0;
     dep_pay = 0;
     dep_outlay = 0;
-    
+
     if(report_info.emplId == 'opt'){
-      employees = getEmployeesByDep(departments[i].id, allEmployees); 
-      
+      employees = getEmployeesByDep(departments[i].id, allEmployees);
+
       employees = employees.sort(compareStr);
     } else {
       employees[0] = {
@@ -102,30 +101,30 @@ function getDataForReport(data){
     for(var j = 0; j < employees.length; j++){
 
       range = sheet.getRange(sheet.getLastRow() + 1, 1, 1,4);
-      range.setValues([[employees[j].name, '', '', '']]);
+      range.setValues([[employees[j].name, '', '', '', '', '', '']]);
       range.setBackground('#B0E0E6');
       range.merge();
       range.setHorizontalAlignment("center");
       range.setFontWeight("bold");
-       
-      
+
+
       sum_hours = 0;
       sum_pay = 0;
       sum_outlay = 0;
-      
+
       for(var k = 0; k < periods.length; k++){
-        range = sheet.getRange(sheet.getLastRow() + 1, 1, 1,4);
-        range.setValues([[periods[k].name, '', '', '']]);
+        range = sheet.getRange(sheet.getLastRow() + 1, 1, 1,7);
+        range.setValues([[periods[k].name, '', '', '', '', '', '']]);
         range.setBackground('#FFF8DC');
         range.merge();
         range.setHorizontalAlignment("center");
-        range = sheet.getRange(sheet.getLastRow() + 1, 1, 1,4);
-        range.setValues([['', 'Трудозатраты', 'ЗП', 'Затраты на ЗП']]);
-        
+        range = sheet.getRange(sheet.getLastRow() + 1, 1, 1,7);
+        range.setValues([['', 'Трудозатраты', 'ЗП белая', 'ЗП серая', 'ЗП белая(факт)', 'ЗП серая(факт)', 'Премия', 'Налоги']]);
+
         total_projects = getProjectsByEmployee(employees[j].id, departments[i].id,  periods[k].date, valueWork, allProjects);
         sorted_total_projects = total_projects.length > 0 ? total_projects.sort(compareStr) : [];
 
-                
+
         for(var n = 0; n < sorted_total_projects.length; n++){
           range = sheet.getRange(sheet.getLastRow() + 1, 1, 1,4);
           range.setValues([[sorted_total_projects[n].name, sorted_total_projects[n].hours, sorted_total_projects[n].pay, sorted_total_projects[n].outlay]]);
@@ -134,8 +133,8 @@ function getDataForReport(data){
           sum_pay += sorted_total_projects[n].pay;
           sum_outlay += sorted_total_projects[n].outlay;
 
-        }  
-        
+        }
+
       }
       range = sheet.getRange(sheet.getLastRow() + 1, 1, 1,4);
       range.setValues([['Итого по сотруднику', sum_hours, sum_pay, sum_outlay]]);
@@ -144,12 +143,12 @@ function getDataForReport(data){
       total_hours += sum_hours;
       total_pay += sum_pay;
       total_outlay += sum_outlay;
-      
+
       dep_hours += sum_hours;
       dep_pay += sum_pay;
       dep_outlay += sum_outlay;
     }
-    
+
     range = sheet.getRange(sheet.getLastRow() + 1, 1, 1,4);
     range.setValues([['Итого по отделу', dep_hours, dep_pay, dep_outlay]]);
     range.setNumberFormats(format.prjs);
@@ -162,7 +161,7 @@ function getDataForReport(data){
   range = sheet.getDataRange();
   range.setBorder(true, true, true, true, true, true);
   range.setWrap(true);
-                                                                                     
+
   return {
     type: 'link',
     value: ssNew.getUrl()
@@ -177,18 +176,18 @@ function getNameRep(id, table){
   }
   return 'none';
 }
-        
+
 function getProjectsByEmployee(e_id, d_id, month, wTime_value, allProjects){
   var projects = [],
       flag = true,
       cost = 0;
-  
+// TODO: Загрузить документы и их содержимое здесь, или даже в главной функции в глобал.
   for(var i = 0; i < wTime_value.length; i++) {
-    if(wTime_value[i][5] == e_id && wTime_value[i][4] == d_id && 
-       wTime_value[i][2].getMonth() == month.getMonth() && 
+    if(wTime_value[i][5] == e_id && wTime_value[i][4] == d_id &&
+       wTime_value[i][2].getMonth() == month.getMonth() &&
        wTime_value[i][2].getFullYear() == month.getFullYear()) {
       flag = true;
-      
+
       for(var j = 0; j < projects.length; j++) {
         if(projects[j].id == wTime_value[i][1]) {
           cost = getPay(e_id);
@@ -216,7 +215,7 @@ function getProjectsByEmployee(e_id, d_id, month, wTime_value, allProjects){
 
 function getEmployeesByDep(dep_id, employees) {
   var result = [];
-  
+
   for(var i = 0; i < employees.length; i++){
     if(employees[i].dep_id == dep_id ){
       result.push({
@@ -225,7 +224,7 @@ function getEmployeesByDep(dep_id, employees) {
       })
     }
   }
-  
+
   return result;
 }
 
@@ -233,23 +232,23 @@ function getProjectName(projects, id){
   var name;
   for(var i = 0; i < projects.length; i++) {
     if(projects[i].id == id) {
-      
+
       name = projects[i].name;
     }
   }
-          
-  return name;  
+
+  return name;
 }
 
 function getPeriods(from, to){
   var i = 0,
       periods = [],
-      time = new Date(from), 
+      time = new Date(from),
       tmp;
   from = new Date(from);
   to = new Date(to);
   var dif = (to.getMonth() - from.getMonth() + 1) + 12 * (to.getFullYear() - from.getFullYear());
-  
+
   for(i = 0; i < dif; i++) {
     time.setMonth(from.getMonth() + i);
     tmp = new Date(time);
@@ -265,14 +264,14 @@ function getPeriods(from, to){
 
 
 function getDepartments(){
-  var ss = SpreadsheetApp.openById('1AM0Yl7KvJYnkoee1ZFH5ObCY98VUStSS921cKNHezmI');
-  var sheet = ss.getSheets()[0];
-  var value = sheet.getDataRange().getValues();
-  var depsList = []
-  
+  var department = openDocument(FILEID.department, 'Разработка'),
+      value = department.getDataRange().getValues(),
+      depsList = [],
+      i = 0;
+
 //  Logger.log(value[2][2]);
-  
-  for(var i = 1; i < value.length; i++){
+
+  for(i = 1; i < value.length; i++){
     if(value[i][2]){
       depsList.push({
         id: value[i][0],
@@ -280,18 +279,18 @@ function getDepartments(){
       });
     }
   }
-  
+
   return depsList;
 }
 
 function getEmployees(deps){
-  var ss = SpreadsheetApp.openById('1eh3VD21EwpEPPHGX95bSL2NZpTDgI-RkL11QqR2MW0k');
-  var sheet = ss.getSheets()[0];
-  var value = sheet.getDataRange().getValues();
-  
-  var list = [];
-  
-  for(var i = 0; i < deps.length; i++) {
+  var employee = openDocument(FILEID.employee, 'Разработка'),
+      value = employee.getDataRange().getValues(),
+      list = [],
+      i = 0,
+      j = 0;
+
+  for(var i = 1; i < deps.length; i++) {
     for(var j = 1; j < value.length; j++) {
       if(value[j][3] == deps[i].id && value[j][4]) {
 
@@ -303,14 +302,14 @@ function getEmployees(deps){
       }
     }
   }
-  
+
   return list;
 }
 
-function getProjects(){
-  
-  var projects = []
-  
+function getProjects(value){
+
+  var projects = [];
+
   for(var i = 1; i < value.length; i++){
 //    if(value[i][4]) {
       projects.push({
@@ -323,7 +322,7 @@ function getProjects(){
   return projects;
 }
 
-  
+
 function getPay(e_id){
   var ss = SpreadsheetApp.openById('1E8PyZB61S_V7C0u9yJaVVJrJQdWFvFuvCvyBht1-Dzw'),
       sheet = ss.getSheets()[0],
@@ -331,7 +330,7 @@ function getPay(e_id){
       days = 0,
       i = 0,
       cost = {};
-  
+
   for(i = 0; i < value.length; i++){
      if(value[i][0] == e_id && value[i][3]){
 //     Logger.log(value[i][1] + ' - ' + value[0][5] + ' - ' + value[i][2] + ' - ' + value[0][7]);
@@ -342,13 +341,13 @@ function getPay(e_id){
      }
   }
 }
-  
+
 function getWorkDays(month, year){
   var ss = SpreadsheetApp.openById('1JGdMmLlebe4K_qYa-VvaqJ9T_4HA6hhXIyPyvf_NCeQ'),
       sheet = ss.getSheetByName(year),
       value = sheet.getDataRange().getValues(),
       days = 0;
-  
+
   for(var i = 1; i < value.length; i++){
     if(value[i][0] == (month + 1)){
       return value[i][1];
@@ -364,10 +363,10 @@ function getWorkDays(month, year){
 function createReportForOrg(data){
   var params = JSON.parse(data),
       reportName = (params.fileName == '') ? 'Отчет по организации' : params.fileName ;
-  
+
   params.dateFrom = new Date(params.dateFrom);
   params.dateTo = new Date(params.dateTo);
-  
+
 //  Валидация
   if(params.monthFrom == '') {
     return {
@@ -375,25 +374,25 @@ function createReportForOrg(data){
       value: MESSAGE.empty_dfrom
     };
   }
-  else if(params.monthTo == '') { 
+  else if(params.monthTo == '') {
     return {
       type: 'error',
       value: MESSAGE.empty_dto
     };
-  } 
+  }
   else if(!isDate(params.dateFrom)) {
     return {
       type: 'error',
       value: MESSAGE.wrong_dfrom
     };
-  } 
+  }
   else if(!isDate(params.dateTo)) {
     return {
       type: 'error',
       value: MESSAGE.wrong_dto
     };
-  } 
-  
+  }
+
   var reportSs = createSpreadSheet(reportName),
       report = reportSs.getSheets()[0],
       allProjects,
@@ -410,7 +409,7 @@ function createReportForOrg(data){
       totalReport = 0,
       totalProject = 0,
       format = [['@','0.00']];
-  
+
   value = getSsValue(FILEID.project);
   allProjects = getProjects(value).sort(compareStr);
   value = getSsValue(FILEID.contract);
@@ -420,7 +419,7 @@ function createReportForOrg(data){
 
   range = report.getRange(report.getLastRow() + 1, 1, 2,2);
   range.setValues([['Отчет по организации',''], ['За период:', params.monthFrom + ' - ' + params.monthTo]]);
-  
+
 //  Формируем данные и сразу пишем в отчет reportSs на страницу report
   for(i = 0; i < allProjects.length; i++){
     range = report.getRange(report.getLastRow() + 1, 1, 1,2);
@@ -433,40 +432,40 @@ function createReportForOrg(data){
 //  Получаем контракты по проекту и периоду отчета
     contracts = getContractsForProject(provision, allContracts, allProjects[i].id, params.dateFrom, params.dateTo);
     totalProject = 0;
-    
+
     for(j = 0; j < contracts.length; j++){
       range = report.getRange(report.getLastRow() + 1, 1, 1,2);
       range.setValues([[contracts[j].name, contracts[j].cost]]);
       range.setNumberFormats(format);
       totalProject += contracts[j].cost;
     }
-    
+
 //  Получаем выплаты по сотрудникам
     employeesPayment = getTotalPayment(allProjects[i].id, params.dateFrom, params.dateTo, employeesPayment, workTime, workDays) * (-1);
     totalProject += employeesPayment;
-    totalReport += totalProject; 
-    
+    totalReport += totalProject;
+
     range = report.getRange(report.getLastRow() + 1, 1, 1,2);
     range.setValues([['Выплаты сотрудникам', employeesPayment]]);
     range.setNumberFormats(format);
     range.setBackground('#E6E6FA');
-    
+
     range = report.getRange(report.getLastRow() + 1, 1, 1,2);
     range.setValues([['Итого по проекту', totalProject]]);
     range.setNumberFormats(format);
     range.setBackground('#FFF273');
   }
-  
+
   range = report.getRange(report.getLastRow() + 1, 1, 1,2);
   range.setValues([['Итого по организации', totalReport]]);
   range.setNumberFormats(format);
   range.setBackground('#FFCF73');
-  
+
   range = report.getDataRange();
   range.setBorder(true, true, true, true, true, true);
   range.setWrap(true);
   report.autoResizeColumn(1);
-  
+
   return {type: 'link', value: reportSs.getUrl()};
 }
 
@@ -493,13 +492,13 @@ function isDate(date){
 function getNameId(value){
   var i = 0,
       result = [];
-      
+
   for(i = 1; i < value.length; i++){
     result[i-1] = {};
     result[i-1].id = value[i][0];
     result[i-1].name = value[i][1]
   }
-  
+
   return result.sort(compareStr);
 }
 
@@ -516,7 +515,7 @@ function getProjects(value){
       result.push({
         id: value[i][0],
         name: value[i][1],
-        dateFrom: new Date(value[i][2]) 
+        dateFrom: new Date(value[i][2])
       })
     }
 //    result[i-1] = {};
@@ -524,7 +523,7 @@ function getProjects(value){
 //    result[i-1].name = value[i][1];
 //    result[i-1].dateFrom = new Date(value[i][2]);
   }
-   
+
   return result.sort(compareStr);
 }
 
@@ -535,7 +534,7 @@ function getProjects(value){
 function getContracts(value){
   var i = 0,
       result = [];
-      
+
   for(i = 1; i < value.length; i++){
     result[i-1] = {};
     result[i-1].id = value[i][0];
@@ -543,7 +542,7 @@ function getContracts(value){
     result[i-1].dateFrom = new Date(value[i][6]);
     result[i-1].cost = value[i][5];
   }
-   
+
   return result.sort(compareStr);
 }
 
@@ -555,13 +554,13 @@ function getContracts(value){
 function getProjectsInPeriod(projects, from, to){
   var result = [],
       i = 0;
-  
+
   for(i = 0; i < projects.length; i++){
     if(projects[i].dateFrom >= from && projects[i].dateFrom <= to){
       result.push(projects[i]);
     }
   }
-  
+
   return result;
 }
 
@@ -577,19 +576,19 @@ function getContractsForProject(provision, allContracts, projectId, from, to){
   var projContracts = [],
       result,
       i = 0;
-  
+
   for(i = 0; i < provision.length; i++){
-    if(provision[i][1] == projectId){   
+    if(provision[i][1] == projectId){
       projContracts.push(provision[i][0]);
     }
   }
-  
+
   result = contractsForPeriod(projContracts, allContracts, from, to).sort(compareStr);
-  
-  
-  
+
+
+
   Logger.log(result);
-  
+
   return getContractsCost(result, projectId, provision);
 }
 
@@ -598,13 +597,13 @@ function getContractsCost(value, projectId, provision){
   var i = 0,
       j = 0,
       result;
-  
+
   for(i = 0; i < value.length; i++){
     for(j = 0; j < provision.length; j++){
       if(provision[j][0] == value[i].id &&  provision[j][1] == projectId){
         value[i].cost = provision[j][3];
       }
-    }   
+    }
   }
   return value;
 }
@@ -619,7 +618,7 @@ function getContractsCost(value, projectId, provision){
 function contractsForPeriod(projContracts, allContracts, from, to){
   var result = [],
       i = 0, j;
-      
+
   for(i = 0; i < projContracts.length; i++){
     for(j = 0; j < allContracts.length; j++){
       if(projContracts[i] == allContracts[j].id && allContracts[j].dateFrom >= from && allContracts[j].dateFrom <= to){
@@ -627,7 +626,7 @@ function contractsForPeriod(projContracts, allContracts, from, to){
       }
     }
   }
-  
+
   return result;
 }
 
@@ -642,13 +641,13 @@ function contractsForPeriod(projContracts, allContracts, from, to){
 */
 function getTotalPayment(prj_id, from, to, payment, workTime, workDays){
   var i = 0, total = 0, pay;
-  
+
   for(i = 0; i < workTime.length; i++){
     if(workTime[i][1] == prj_id && workTime[i][2] >= from && workTime[i][2] <= to){
       total += (getPayOrg(workTime[i][5])/(getWorkDays(workTime[i][2].getMonth(), workTime[i][2].getFullYear()) * 8)) * workTime[i][6] || 0;
     }
   }
-  
+
   return total;
 }
 
@@ -677,7 +676,7 @@ function getWorkDays(month, year){
       sheet = ss.getSheetByName(year),
       value = sheet.getDataRange().getValues(),
       days = 0;
-  
+
   for(var i = 1; i < value.length; i++){
     if(value[i][0] == (month + 1)){
       return value[i][1];
