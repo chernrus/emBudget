@@ -318,7 +318,7 @@
             if(event.target.classList.contains('save-button')){
             
               params = event.target.value.split('-');
-              saveInput(params);
+              saveWTime(params);
               changeInput(params[0], true, 'transparent', 'inline', 'none');
               blockOtherRows();
             }
@@ -377,7 +377,7 @@
         input[2].value = table_value[row_num].time;
       }
       
-      function saveInput(params){
+      function saveWTime(params){
         var row_num = params[0],
           id = params[1],
           s_row = params[2], // s_row - sheet row in google sheet doc
@@ -393,7 +393,7 @@
             };
         
         console.log(info);
-        google.script.run.withSuccessHandler(onEditSuccess).save(info);
+        google.script.run.withSuccessHandler(onEditSuccess).saveWTime(info);
       }
       
       function removeWTime(date){
@@ -405,7 +405,8 @@
         
         var info = {
               mode: document.getElementById('modeSelect').value,
-              row: s_row
+              row: s_row,
+              document: 'workTime'
             };
         
         google.script.run.withSuccessHandler(onEditSuccess).removeRow(info);
@@ -416,10 +417,10 @@
       function onEditSuccess(message){
         var editMessage = document.querySelector("#edit_message");
         if(message.status == 'Success') {
-          showMessage(editMessage, 'Запись успешно изменена','red');
+          showMessage(editMessage, message.text,'green');
         } 
         else {
-          showMessage(editMessage, message.text, 'green');
+          showMessage(editMessage, message.text, 'red');
         }    
       }
     </script>

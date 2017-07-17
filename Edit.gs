@@ -36,6 +36,7 @@ function createDepModel(data) {
 }
 
 function saveDepartment(data) {
+
   var sheet = openDocument(FILEID.department, data.mode);
 
   sheet.getRange(data.row, 2, 1, 1).setValue(cleanStr(data.name));
@@ -48,7 +49,6 @@ function saveDepartment(data) {
 
 function deleteDepartment(data){
 
-  Logger.log(data);
   var sheetDep = openDocument(FILEID.department, data.mode),
       sheetWTime = openDocument(FILEID.workTime, data.mode),
       tableWTime = sheetWTime.getDataRange().getValues(),
@@ -88,6 +88,7 @@ function getPeopleCountOfDep(dep_id, emplValue) {
 */
 
 function getEmplTable(_mode) {
+
   EM.mode = _mode
   var sheet = openDocument(FILEID.employee, EM.mode),
       value = sheet.getDataRange().getValues(),
@@ -101,6 +102,7 @@ function getEmplTable(_mode) {
 * Создание объекта таблицы для отображения
 */
 function createEmplModel(data) {
+
   var i = 0,
       result = [],
       departments = openDocument(FILEID.department, EM.mode).getDataRange().getValues();
@@ -123,6 +125,7 @@ function createEmplModel(data) {
 }
 
 function getDepName(id, dep_value){
+
   return dep_value.filter(function(dep_id, i){
     return dep_id[0] == id;
   })[0][1];
@@ -130,7 +133,6 @@ function getDepName(id, dep_value){
 
 function saveEmployee(data) {
 
-  Logger.log(data);
   var sheet = openDocument(FILEID.employee, data.mode);
   if(data.status == 'Уволен') {
     return deleteEmployee(data);
@@ -211,7 +213,7 @@ function checkDateInWorkTime(id, _date, mode, wTime){
 */
 
 function saveProject(data) {
-  Logger.log(data);
+
   EM.mode = data.mode;
   var sheet = openDocument(FILEID.project, data.mode);
 
@@ -225,7 +227,6 @@ function saveProject(data) {
 
 function deleteProject(data){
 
-  Logger.log(data);
   var sheet = openDocument(FILEID.project, data.mode),
       sheetWTime = openDocument(FILEID.workTime, data.mode),
       tableWTime = sheetWTime.getDataRange().getValues(),
@@ -247,6 +248,7 @@ function deleteProject(data){
 }
 
 function getProjectTable(_mode) {
+
   EM.mode = _mode
   var sheet = openDocument(FILEID.project, EM.mode),
       value = sheet.getDataRange().getValues(),
@@ -261,6 +263,7 @@ function getProjectTable(_mode) {
 * Создание объекта таблицы для отображения
 */
 function createProjectModel(data) {
+
   var i = 0,
       result = [];
 
@@ -280,8 +283,10 @@ function createProjectModel(data) {
 }
 
 function addStatus(table_value){
+
   var i = 0,
       current_date = new Date();
+      
   for(i = 0; i < table_value.length; i++){
 
     if(table_value[i].date_to != '' && current_date >= table_value[i].date_to){
@@ -300,18 +305,17 @@ function addStatus(table_value){
 */
 
 function getWTimeTable(_mode){
+
   EM.mode = _mode;
   var sheet = openDocument(FILEID.workTime, EM.mode),
       value = sheet.getDataRange().getValues(),
       table_value = createWTimeModel(value);
 
-  Logger.log(table_value);
-//  return JSON.stringify(table_value);
   return JSON.stringify(table_value.sort(compareStr));
 }
 
-function save(data){
-   Logger.log(data);
+function saveWTime(data){
+
   var sheet = openDocument(FILEID.workTime, data.mode);
 
   sheet.getRange(data.row, 3, 1, 2).setValues([[data.date_from, data.date_to]]);
@@ -324,11 +328,11 @@ function save(data){
 }
 
 function removeRow(data){
-   var sheet = openDocument(FILEID.workTime, data.mode);
-   sheet.deleteRow(data.row);
+   var sheet = openDocument(FILEID[data.document], data.mode);
+       sheet.deleteRow(data.row);
 
   return {
-    type: 'Success',
+    status: 'Success',
     text: 'Запись успешно удалена!'
   }
 }
@@ -403,6 +407,7 @@ function getName(id, table){
 */
 
 function getContractValue(_mode){
+
   EM.mode = _mode;
   var sheet = openDocument(FILEID.contract, EM.mode),
       value = sheet.getDataRange().getValues(),
@@ -439,8 +444,7 @@ function createContractModel(data) {
 }
 
 function saveContract(data){
-  Logger.log(data);
-  Logger.log(EM.mode);
+
   var sheet = openDocument(FILEID.contract, 'Разработка'); // TODO
 
 
@@ -470,24 +474,20 @@ function saveContract(data){
 }
 
 function checkProvisionTime(id, cost){
-  Logger.log(FILEID.provision);
-  Logger.log(EM.mode);
+
   var provision = openDocument(FILEID.provision, 'Разработка'),
       tableProvision = provision.getDataRange().getValues(),
       i = 0,
       total_cost = 0,
       total_time = 0;
-  Logger.log(provision);
+
   for(i = 0; i < tableProvision.length; i++){
-    Logger.log(tableProvision[i][0]);
     if(id == tableProvision[i][0]) {
-      Logger.log(tableProvision[i][3]);
       total_cost += tableProvision[i][3];
       total_time += tableProvision[i][2];
     }
   }
 
-  Logger.log(id);
   return Math.abs(total_cost) <= Math.abs(cost);
 }
 
@@ -530,7 +530,7 @@ function createProvisionModel(data) {
 }
 
 function saveProvision(data){
-  Logger.log(data);
+
   var provision = openDocument(FILEID.provision, EM.mode),
       contract = openDocument(FILEID.contract, EM.mode),
       provision_table = provision.getDataRange().getValues(),
@@ -558,15 +558,15 @@ function saveProvision(data){
   }
 }
 
-function removeRow(data){
-   var sheet = openDocument(FILEID.provision, EM.mode);
-   sheet.deleteRow(data.row);
-
-  return {
-    status: 'Success',
-    text: 'Запись успешно удалена!'
-  }
-}
+//function removeRow(data){
+//   var sheet = openDocument(FILEID.provision, EM.mode);
+//   sheet.deleteRow(data.row);
+//
+//  return {
+//    status: 'Success',
+//    text: 'Запись успешно удалена!'
+//  }
+//}
 
 //function getName(id, file){
 //  var table = openDocument(FILEID[file], mode).getDataRange().getValues(),
@@ -587,6 +587,7 @@ function removeRow(data){
 */
 
 function getPaymentTable(_mode) {
+
   EM.mode = _mode
   var sheet = openDocument(FILEID.payment, EM.mode),
       value = sheet.getDataRange().getValues(),
@@ -596,8 +597,8 @@ function getPaymentTable(_mode) {
 }
 
 function savePayment(data) {
+
   var sheet = openDocument(FILEID.payment, data.mode);
-  Logger.log(data);
 
   sheet.getRange(data.row, 2, 1, 2).setValues([[data.white_pay, +data.gray_pay]]);
 
@@ -639,6 +640,7 @@ function getEmployeeName(id, table) {
 }
 
 function getCurrentAnte(w_pay, g_pay, wDaysTable) {
+
   var date = new Date(),
       month = date.getMonth(),
       
@@ -648,17 +650,17 @@ function getCurrentAnte(w_pay, g_pay, wDaysTable) {
 }
 
 function getPremiumTable(_mode) {
+
   EM.mode = _mode;
   var sheet = openDocument(FILEID.premium, EM.mode),
       value = sheet.getDataRange().getValues(),
       table_value = createPremiumModel(value);
 
-  Logger.log(table_value);
-//  return JSON.stringify(table_value);
   return JSON.stringify(table_value.sort(compareStr));
 }
 
 function createPremiumModel(data) {
+
   var i = 0,
       result = [],
       prjV = openDocument(FILEID.project, EM.mode).getDataRange().getValues(),
@@ -682,4 +684,16 @@ function createPremiumModel(data) {
   });
 
   return result;
+}
+
+function savePremium(data){
+
+  var sheet = openDocument(FILEID.premium, data.mode);
+
+  sheet.getRange(data.row, 4, 1, 3).setValues([[data.project_id, data.month,  data.premium]]);
+
+  return {
+    type: 'Success',
+    text: 'Запись успешно изменена'
+  }
 }
