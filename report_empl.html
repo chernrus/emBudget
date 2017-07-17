@@ -10,8 +10,8 @@
   <body>
     <div class="header w3-container"> 
       <h2>Отчет по сотрудникам и отделам</h2>
-      <div class="w3-bar">
-        <a href='<?=url?>?page=main&title=Бюджет' class="w3-bar-item w3-button w3-margin-bottom w3-teal">На главную</a>
+      <div class="w3-bar w3-margin-bottom">
+        <a href='<?=url?>?page=main&title=Бюджет' class="w3-bar-item w3-button w3-teal">На главную</a>
       </div>
     </div>
     
@@ -139,7 +139,7 @@
     function onSuccess(info){
       createBtn.disabled = false;
       message.innerText = '';
-      if(info.type == 'link'){
+      if(info.status == 'link'){
         link.href = info.value;
         link.innerText = 'Отчет: ' + info.value;
       } else {

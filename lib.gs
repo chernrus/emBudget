@@ -180,5 +180,5 @@ function compareDatesWtime(firstDate, secondDate){ // TODO: подумать, п
 function compareDates(firstDate, secondDate){
   var firstArr = firstDate.split('.'),
       secondArr = secondDate.split('.');
-  return firstArr[2]+firstArr[1]+firstArr[0] >= secondArr[2]+secondArr[1]+secondArr[0];
+  return firstArr[2]+firstArr[1]+firstArr[0] > secondArr[2]+secondArr[1]+secondArr[0];
 }
