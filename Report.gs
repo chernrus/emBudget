@@ -423,12 +423,11 @@ function getProjects(value){
   var projects = [];
 
   for(var i = 1; i < value.length; i++){
-//    if(value[i][4]) {
     projects.push({
       id: value[i][0],
-      name: value[i][1]
+      name: value[i][1],
+      dateFrom: new Date(value[i][2])
     })
-//    }
   }
 
   return projects;
@@ -465,157 +464,185 @@ function getWorkDays(month, year){
   }
 }
 
-///**
-//  * Create a report.
-//  * @param {JSON} x - Параметры для создания отчета (период в текстовом формате и в формате Date).
-//  * @return {Object} y - Тип сообщения (сообщение об ошибку валидации или ссылка на отчет).
-//*/
-//function createReportForOrg(data){
-//  var params = JSON.parse(data),
-//      reportName = (params.fileName == '') ? 'Отчет по организации' : params.fileName ;
-//
-//  params.dateFrom = new Date(params.dateFrom);
-//  params.dateTo = new Date(params.dateTo);
-//
-////  Валидация
-//  if(params.monthFrom == '') {
-//    return {
-//      type: 'error',
-//      value: MESSAGE.empty_dfrom
-//    };
-//  }
-//  else if(params.monthTo == '') {
-//    return {
-//      type: 'error',
-//      value: MESSAGE.empty_dto
-//    };
-//  }
-//  else if(!isDate(params.dateFrom)) {
-//    return {
-//      type: 'error',
-//      value: MESSAGE.wrong_dfrom
-//    };
-//  }
-//  else if(!isDate(params.dateTo)) {
-//    return {
-//      type: 'error',
-//      value: MESSAGE.wrong_dto
-//    };
-//  }
-//
-//  var reportSs = createSpreadSheet(reportName),
-//      report = reportSs.getSheets()[0],
-//      allProjects,
-//      allContracts,
-//      provision,
-//      workTime,
-//      workDays,
-//      value,
-//      projects,
-//      contracts,
-//      employeesPayment,
-//      range,
-//      i, j, k,
-//      totalReport = 0,
-//      totalProject = 0,
-//      format = [['@','0.00']];
-//
-//  value = getSsValue(FILEID.project);
-//  allProjects = getProjects(value).sort(compareStr);
-//  value = getSsValue(FILEID.contract);
-//  allContracts = getContracts(value);
-//  provision = getSsValue(FILEID.provision)
-//  workTime = getSsValue(FILEID.workTime);
-//
-//  range = report.getRange(report.getLastRow() + 1, 1, 2,2);
-//  range.setValues([['Отчет по организации',''], ['За период:', params.monthFrom + ' - ' + params.monthTo]]);
-//
-////  Формируем данные и сразу пишем в отчет reportSs на страницу report
-//  for(i = 0; i < allProjects.length; i++){
-//    range = report.getRange(report.getLastRow() + 1, 1, 1,2);
-//    range.setValues([[allProjects[i].name,'']]);
-//    range.setBackground('#C0C0C0');
-//    range.merge();
-//    range.setFontWeight("bold");
-//    range.setHorizontalAlignment("center");
-//
-////  Получаем контракты по проекту и периоду отчета
-//    contracts = getContractsForProject(provision, allContracts, allProjects[i].id, params.dateFrom, params.dateTo);
-//    totalProject = 0;
-//
-//    for(j = 0; j < contracts.length; j++){
-//      range = report.getRange(report.getLastRow() + 1, 1, 1,2);
-//      range.setValues([[contracts[j].name, contracts[j].cost]]);
-//      range.setNumberFormats(format);
-//      totalProject += contracts[j].cost;
-//    }
-//
-////  Получаем выплаты по сотрудникам
-//    employeesPayment = getTotalPayment(allProjects[i].id, params.dateFrom, params.dateTo, employeesPayment, workTime, workDays) * (-1);
-//    totalProject += employeesPayment;
-//    totalReport += totalProject;
-//
-//    range = report.getRange(report.getLastRow() + 1, 1, 1,2);
-//    range.setValues([['Выплаты сотрудникам', employeesPayment]]);
-//    range.setNumberFormats(format);
-//    range.setBackground('#E6E6FA');
-//
-//    range = report.getRange(report.getLastRow() + 1, 1, 1,2);
-//    range.setValues([['Итого по проекту', totalProject]]);
-//    range.setNumberFormats(format);
-//    range.setBackground('#FFF273');
-//  }
-//
-//  range = report.getRange(report.getLastRow() + 1, 1, 1,2);
-//  range.setValues([['Итого по организации', totalReport]]);
-//  range.setNumberFormats(format);
-//  range.setBackground('#FFCF73');
-//
-//  range = report.getDataRange();
-//  range.setBorder(true, true, true, true, true, true);
-//  range.setWrap(true);
-//  report.autoResizeColumn(1);
-//
-//  return {type: 'link', value: reportSs.getUrl()};
-//}
-//
-///**
-//  * Создание файла SpreadSheet
-//  * @param {string} name - название файла TODO: сдлать название файла из input
-//*/
-//function createSpreadSheet(name){
-//  return SpreadsheetApp.create(name);
-//}
-//
-//
-///**
-//  * Получение содержимого таблицы по id
-//*/
-//function getSsValue(id){
-//  return SpreadsheetApp.openById(id).getSheets()[0].getDataRange().getValues();
-//}
-//
-//function isDate(date){
-//  return (date instanceof Date);
-//}
-//
-//function getNameId(value){
-//  var i = 0,
-//      result = [];
-//
-//  for(i = 1; i < value.length; i++){
-//    result[i-1] = {};
-//    result[i-1].id = value[i][0];
-//    result[i-1].name = value[i][1]
-//  }
-//
-//  return result.sort(compareStr);
-//}
-//
-///**
-//  * Получение данных из таблицы "Проекты"
-//  * @param {Array} value - двумерный массив из полученный из документа "Проекты"
-//*/
+/**
+  * Create a report.
+  * @param {JSON} x - Параметры для создания отчета (период в текстовом формате и в формате Date).
+  * @return {Object} y - Тип сообщения (сообщение об ошибку валидации или ссылка на отчет).
+*/
+function createReportForOrg(data){
+  var params = JSON.parse(data),
+      reportName = (params.fileName == '') ? 'Отчет по организации' : params.fileName ;
+
+  params.dateFrom = new Date(params.dateFrom);
+  params.dateTo = new Date(params.dateTo);
+
+//  Валидация
+  if(params.monthFrom == '') {
+    return {
+      type: 'error',
+      value: MESSAGE.empty_dfrom
+    };
+  }
+  else if(params.monthTo == '') {
+    return {
+      type: 'error',
+      value: MESSAGE.empty_dto
+    };
+  }
+  else if(!isDate(params.dateFrom)) {
+    return {
+      type: 'error',
+      value: MESSAGE.wrong_dfrom
+    };
+  }
+  else if(!isDate(params.dateTo)) {
+    return {
+      type: 'error',
+      value: MESSAGE.wrong_dto
+    };
+  }
+
+  var reportSs = createSpreadSheet(reportName),
+      report = reportSs.getSheets()[0],
+      allProjects,
+      allContracts,
+      provision,
+      workTime,
+      workDays,
+      value,
+      projectsInPeriod,
+      projects,
+      contracts,
+      employeesPayment,
+      range,
+      i, j, k,
+      totalReport = 0,
+      totalProject = 0,
+      format = [['@','0.00']];
+
+  value = getSsValue(FILEID.project);
+  allProjects = getProjects(value).sort(compareStr);
+  projectsInPeriod = getProjectsInPeriod(allProjects, params.dateFrom, params.dateTo);
+  value = getSsValue(FILEID.contract);
+  allContracts = getContracts(value);
+  provision = getSsValue(FILEID.provision);
+  projects = getProjectsInProvision(projectsInPeriod, provision);
+  workTime = getSsValue(FILEID.workTime);
+//  Logger.log(allProjects);
+//  Logger.log(projects);
+//  Logger.log(provision);
+  
+  range = report.getRange(report.getLastRow() + 1, 1, 2,2);
+  range.setValues([['Отчет по организации',''], ['За период:', params.monthFrom + ' - ' + params.monthTo]]);
+
+//  Формируем данные и сразу пишем в отчет reportSs на страницу report
+  for(i = 0; i < projects.length; i++){
+    range = report.getRange(report.getLastRow() + 1, 1, 1,2);
+    range.setValues([[projects[i].name,'']]);
+    range.setBackground('#C0C0C0');
+    range.merge();
+    range.setFontWeight("bold");
+    range.setHorizontalAlignment("center");
+
+//  Получаем контракты по проекту и периоду отчета
+    contracts = getContractsForProject(provision, allContracts, projects[i].id, params.dateFrom, params.dateTo);
+    totalProject = 0;
+//    Logger.log(allContracts);
+//    Logger.log(contracts);
+    for(j = 0; j < contracts.length; j++){
+      range = report.getRange(report.getLastRow() + 1, 1, 1,2);
+      range.setValues([[contracts[j].name, contracts[j].cost]]);
+      range.setNumberFormats(format);
+      totalProject += contracts[j].cost;
+    }
+
+//  Получаем выплаты по сотрудникам
+    employeesPayment = getTotalPayment(projects[i].id, params.dateFrom, params.dateTo, employeesPayment, workTime, workDays) * (-1);
+    totalProject += employeesPayment;
+    totalReport += totalProject;
+
+    range = report.getRange(report.getLastRow() + 1, 1, 1,2);
+    range.setValues([['Выплаты сотрудникам', Math.abs(employeesPayment)]]);
+    range.setNumberFormats(format);
+    range.setBackground('#E6E6FA');
+
+    range = report.getRange(report.getLastRow() + 1, 1, 1,2);
+    range.setValues([['Итого по проекту', totalProject]]);
+    range.setNumberFormats(format);
+    range.setBackground('#FFF273');
+  }
+
+  range = report.getRange(report.getLastRow() + 1, 1, 1,2);
+  range.setValues([['Итого по организации', totalReport]]);
+  range.setNumberFormats(format);
+  range.setBackground('#FFCF73');
+
+  range = report.getDataRange();
+  range.setBorder(true, true, true, true, true, true);
+  range.setWrap(true);
+  report.autoResizeColumn(1);
+
+  return {type: 'link', value: reportSs.getUrl()};
+}
+
+/**
+  * Создание файла SpreadSheet
+  * @param {string} name - название файла TODO: сдлать название файла из input
+*/
+function createSpreadSheet(name){
+  return SpreadsheetApp.create(name);
+}
+
+
+/**
+  * Получение содержимого таблицы по id
+*/
+function getSsValue(id){
+  return SpreadsheetApp.openById(id).getSheets()[0].getDataRange().getValues();
+}
+
+function isDate(date){
+  return (date instanceof Date);
+}
+
+function getNameId(value){
+  var i = 0,
+      result = [];
+
+  for(i = 1; i < value.length; i++){
+    result[i-1] = {};
+    result[i-1].id = value[i][0];
+    result[i-1].name = value[i][1]
+  }
+
+  return result.sort(compareStr);
+}
+
+function getProjectsInProvision(projects, provisions) {
+  var result = [],
+      i = 0,
+      j = 0;
+  
+  Logger.log(provisions);
+  for(i = 0; i < projects.length; i++) {
+    Logger.log(i);
+    for(j = 1; j < provisions.length; j++) {
+      if(projects[i].id == provisions[j][1]){
+        Logger.log(projects[i].id + '==' + provisions[j][1])
+        result.push(projects[i]);
+        break;
+      }
+    }
+  }
+  Logger.log(projects);
+  Logger.log(result);
+  return result;
+}
+
+/**
+  * Получение данных из таблицы "Проекты"
+  * @param {Array} value - двумерный массив из полученный из документа "Проекты"
+*/
 //function getProjects(value){
 //  var i = 0,
 //      result = [];
@@ -636,160 +663,165 @@ function getWorkDays(month, year){
 //
 //  return result.sort(compareStr);
 //}
-//
-///**
-//  * Получение данных из таблицы "Контракты"
-//  * @param {Array} value - двумерный массив из полученный из документа "Контракты"
-//*/
-//function getContracts(value){
-//  var i = 0,
-//      result = [];
-//
-//  for(i = 1; i < value.length; i++){
-//    result[i-1] = {};
-//    result[i-1].id = value[i][0];
-//    result[i-1].name = value[i][1];
-//    result[i-1].dateFrom = new Date(value[i][6]);
-//    result[i-1].cost = value[i][5];
-//  }
-//
-//  return result.sort(compareStr);
-//}
-//
-///**
-//  * Проекты входящие в период from - to
-//  * @param {date} from - дата начала
-//  * @param {date} to - дата окончания
-//*/
-//function getProjectsInPeriod(projects, from, to){
-//  var result = [],
-//      i = 0;
-//
-//  for(i = 0; i < projects.length; i++){
-//    if(projects[i].dateFrom >= from && projects[i].dateFrom <= to){
-//      result.push(projects[i]);
-//    }
-//  }
-//
-//  return result;
-//}
-//
-///**
-//  * Контракты по проекту
-//  * @param {Array} provision - обеспечение контрактов
-//  * @param {Array} allContracts - все контракты организации
-//  * @param {string} projectId - id проекта
-//  * @param {date} from - дата начала
-//  * @param {date} to - дата окончания
-//*/
-//function getContractsForProject(provision, allContracts, projectId, from, to){
-//  var projContracts = [],
-//      result,
-//      i = 0;
-//
-//  for(i = 0; i < provision.length; i++){
-//    if(provision[i][1] == projectId){
-//      projContracts.push(provision[i][0]);
-//    }
-//  }
-//
-//  result = contractsForPeriod(projContracts, allContracts, from, to).sort(compareStr);
-//
-//
-//
+
+/**
+  * Получение данных из таблицы "Контракты"
+  * @param {Array} value - двумерный массив из полученный из документа "Контракты"
+*/
+function getContracts(value){
+  var i = 0,
+      result = [];
+
+  for(i = 1; i < value.length; i++){
+    result[i-1] = {};
+    result[i-1].id = value[i][0];
+    result[i-1].type = value[i][4];
+    result[i-1].name = value[i][1] + '-' + value[i][2];
+    result[i-1].dateFrom = new Date(value[i][8]);
+    result[i-1].cost = value[i][7];
+  }
+
+  return result.sort(compareStr);
+}
+
+/**
+  * Проекты входящие в период from - to
+  * @param {date} from - дата начала
+  * @param {date} to - дата окончания
+*/
+function getProjectsInPeriod(projects, from, to){
+  var result = [],
+      i = 0;
+
+  for(i = 0; i < projects.length; i++){
+    if(projects[i].dateFrom >= from && projects[i].dateFrom <= to){
+      result.push(projects[i]);
+    }
+  }
 //  Logger.log(result);
-//
-//  return getContractsCost(result, projectId, provision);
-//}
-//
-//
-//function getContractsCost(value, projectId, provision){
-//  var i = 0,
-//      j = 0,
-//      result;
-//
-//  for(i = 0; i < value.length; i++){
-//    for(j = 0; j < provision.length; j++){
-//      if(provision[j][0] == value[i].id &&  provision[j][1] == projectId){
-//        value[i].cost = provision[j][3];
-//      }
-//    }
-//  }
-//  return value;
-//}
-//
-///**
-//  * Контракты удовлетворяющие периоду
-//  * @param {Array} projContracts - контракты по проекту
-//  * @param {Array} allContracts - все контракты организации
-//  * @param {date} from - дата начала
-//  * @param {date} to - дата окончания
-//*/
-//function contractsForPeriod(projContracts, allContracts, from, to){
-//  var result = [],
-//      i = 0, j;
-//
-//  for(i = 0; i < projContracts.length; i++){
-//    for(j = 0; j < allContracts.length; j++){
-//      if(projContracts[i] == allContracts[j].id && allContracts[j].dateFrom >= from && allContracts[j].dateFrom <= to){
-//        result.push(allContracts[j]);
-//      }
-//    }
-//  }
-//
-//  return result;
-//}
-//
-///**
-//  * Контракты удовлетворяющие периоду
-//  * @param {string} prj_id - id проекта
-//  * @param {date} from - дата начала
-//  * @param {date} to - дата окончания
-//  * @param {Array} payment - ЗП сотрудников
-//  * @param {Array} workTime - трудозатраты по проектам
-//  * @param {Array} workDays - рабочие дни по месяцам
-//*/
-//function getTotalPayment(prj_id, from, to, payment, workTime, workDays){
-//  var i = 0, total = 0, pay;
-//
-//  for(i = 0; i < workTime.length; i++){
-//    if(workTime[i][1] == prj_id && workTime[i][2] >= from && workTime[i][2] <= to){
-//      total += (getPayOrg(workTime[i][5])/(getWorkDays(workTime[i][2].getMonth(), workTime[i][2].getFullYear()) * 8)) * workTime[i][6] || 0;
-//    }
-//  }
-//
-//  return total;
-//}
-//
-///**
-//  * ЗП для сотрудника (ЗП серая + ЗП белая)
-//*/
-//function getPayOrg(e_id){
-//  var ss = SpreadsheetApp.openById(FILEID.payment),
-//      sheet = ss.getSheets()[0],
-//      value = sheet.getDataRange().getValues(),
-//      days = 0,
-//      i = 0;
-////  Logger.log(value[1][5] )
-//  for(i = 0; i < value.length; i++){
-//     if(value[i][0] == e_id){
-//      return value[i][1]*value[0][5] + value[i][2]*value[0][7];
-//    }
-//  }
-//}
-//
-///**
-//  * Рабочие дни по месяцам за год
-//*/
-//function getWorkDays(month, year){
-//  var ss = SpreadsheetApp.openById(FILEID.workDays),
-//      sheet = ss.getSheetByName(year),
-//      value = sheet.getDataRange().getValues(),
-//      days = 0;
-//
-//  for(var i = 1; i < value.length; i++){
-//    if(value[i][0] == (month + 1)){
-//      return value[i][1];
-//    }
-//  }
-//}
+  return result;
+}
+
+/**
+  * Контракты по проекту
+  * @param {Array} provision - обеспечение контрактов
+  * @param {Array} allContracts - все контракты организации
+  * @param {string} projectId - id проекта
+  * @param {date} from - дата начала
+  * @param {date} to - дата окончания
+*/
+function getContractsForProject(provision, allContracts, projectId, from, to){
+  var projContracts = [],
+      result,
+      i = 0;
+
+  for(i = 0; i < provision.length; i++){
+    if(provision[i][1] == projectId){
+      projContracts.push(provision[i][0]);
+    }
+  }
+  
+//  Logger.log(allContracts);
+  result = contractsForPeriod(projContracts, allContracts, from, to).sort(compareStr);
+
+//  Logger.log(result);
+
+  
+
+  return getContractsCost(result, projectId, provision);
+}
+
+
+function getContractsCost(value, projectId, provision){
+  var i = 0,
+      j = 0,
+      result;
+  
+  for(i = 0; i < value.length; i++){
+    for(j = 0; j < provision.length; j++){
+      if(provision[j][0] == value[i].id &&  provision[j][1] == projectId){
+        value[i].cost = provision[j][3]*value[i].type;
+      }
+    }
+  }
+  return value;
+}
+
+/**
+  * Контракты удовлетворяющие периоду
+  * @param {Array} projContracts - контракты по проекту
+  * @param {Array} allContracts - все контракты организации
+  * @param {date} from - дата начала
+  * @param {date} to - дата окончания
+*/
+function contractsForPeriod(projContracts, allContracts, from, to){
+  var result = [],
+      i = 0, j;
+
+  for(i = 0; i < projContracts.length; i++){
+    for(j = 0; j < allContracts.length; j++){
+//      Logger.log(projContracts[i] + ' -- ' + allContracts[j].id + ' / ' +
+//                 allContracts[j].dateFrom + ' -- ' + from + ' / ' +
+//                 allContracts[j].dateFrom + ' -- ' + to);
+      if(projContracts[i] == allContracts[j].id && allContracts[j].dateFrom >= from && allContracts[j].dateFrom <= to){
+        result.push(allContracts[j]);
+      }
+    }
+  }
+
+  return result;
+}
+
+/**
+  * Контракты удовлетворяющие периоду
+  * @param {string} prj_id - id проекта
+  * @param {date} from - дата начала
+  * @param {date} to - дата окончания
+  * @param {Array} payment - ЗП сотрудников
+  * @param {Array} workTime - трудозатраты по проектам
+  * @param {Array} workDays - рабочие дни по месяцам
+*/
+function getTotalPayment(prj_id, from, to, payment, workTime, workDays){
+  var i = 0, total = 0, pay;
+
+  for(i = 0; i < workTime.length; i++){
+    if(workTime[i][1] == prj_id && workTime[i][2] >= from && workTime[i][2] <= to){
+      total += (getPayOrg(workTime[i][5])/(getWorkDays(workTime[i][2].getMonth(), workTime[i][2].getFullYear()) * 8)) * workTime[i][6] || 0;
+    }
+  }
+
+  return total;
+}
+
+/**
+  * ЗП для сотрудника (ЗП серая + ЗП белая)
+*/
+function getPayOrg(e_id){
+  var ss = SpreadsheetApp.openById(FILEID.payment),
+      sheet = ss.getSheets()[0],
+      value = sheet.getDataRange().getValues(),
+      days = 0,
+      i = 0;
+      
+  for(i = 0; i < value.length; i++){
+     if(value[i][0] == e_id){
+      return value[i][1]*value[0][5] + value[i][2]*value[0][7];
+    }
+  }
+}
+
+/**
+  * Рабочие дни по месяцам за год
+*/
+function getWorkDays(month, year){
+  var ss = SpreadsheetApp.openById(FILEID.workDays),
+      sheet = ss.getSheetByName(year),
+      value = sheet.getDataRange().getValues(),
+      days = 0;
+
+  for(var i = 1; i < value.length; i++){
+    if(value[i][0] == (month + 1)){
+      return value[i][1];
+    }
+  }
+}
