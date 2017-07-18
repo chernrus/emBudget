@@ -90,17 +90,29 @@
           mode: form.mode.value
         };
         
+//        resetFormStyles();
         document.querySelector("#sendBtn").disabled = true;
-        google.script.run.withSuccessHandler(onCreateSuccess).createDepartment(note);
+        google.script.run.withSuccessHandler(onCreateSuccess).withFailureHandler(onFailure).createDepartment(note);
+//        resetFormStyles();
       }
       
+//      function resetFormStyles() {
+//        var inputs = document.querySelectorAll('input'),
+//            i = 0;
+//        
+//        for(i = 0; i < inputs.length; i++) {
+//          inputs[i]styles.backgroundColor = 'white';
+//        }
+//      }
+//      
       function onCreateSuccess(message){
         var createMessage = document.querySelector('#create_message');
-        if(message == 'Success') {
-          showMessage(createMessage, 'Запись успешно добавлена!','green');
+        if(message.status == 'Success') {
+          showMessage(createMessage, message.text,'green');
           resetInput();
         } else {
-          showMessage(createMessage, message, 'red');
+          showMessage(createMessage, message.text, 'red');
+//          document.getElementById(message.field).style.backgroundColor = '#ffe6e6';
         }    
         
         document.querySelector("#sendBtn").disabled = false;
@@ -116,6 +128,9 @@
         document.querySelector("#depForm").reset();
       }
       
+      function onFailure(error){
+        alert("onFailure: " + error);
+      }  
     </script>
     <script>
       $(":input").inputmask();

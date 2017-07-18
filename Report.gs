@@ -518,7 +518,7 @@ function createReportForOrg(data){
       i, j, k,
       totalReport = 0,
       totalProject = 0,
-      format = [['@','0.00']];
+      format = [['@', '0.00', '@']];
 
   value = getSsValue(FILEID.project);
   allProjects = getProjects(value).sort(compareStr);
@@ -532,26 +532,26 @@ function createReportForOrg(data){
 //  Logger.log(projects);
 //  Logger.log(provision);
   
-  range = report.getRange(report.getLastRow() + 1, 1, 2,2);
-  range.setValues([['Отчет по организации',''], ['За период:', params.monthFrom + ' - ' + params.monthTo]]);
-
+  range = report.getRange(report.getLastRow() + 1, 1, 2,3);
+  range.setValues([['Отчет по организации','', ''], ['За период:', params.monthFrom, params.monthTo]]);
+//  report.getRange(2,1,1,3).merge();
 //  Формируем данные и сразу пишем в отчет reportSs на страницу report
   for(i = 0; i < projects.length; i++){
-    range = report.getRange(report.getLastRow() + 1, 1, 1,2);
-    range.setValues([[projects[i].name,'']]);
+    range = report.getRange(report.getLastRow() + 1, 1, 1,3);
+    range.setValues([[projects[i].name,'','']]);
     range.setBackground('#C0C0C0');
     range.merge();
     range.setFontWeight("bold");
     range.setHorizontalAlignment("center");
 
 //  Получаем контракты по проекту и периоду отчета
-    contracts = getContractsForProject(provision, allContracts, projects[i].id, params.dateFrom, params.dateTo);
+    contracts = getContractsForProject(provision, allContracts, projects[i].id, params.dateFrom, params.dateTo, params.type);
     totalProject = 0;
 //    Logger.log(allContracts);
 //    Logger.log(contracts);
     for(j = 0; j < contracts.length; j++){
-      range = report.getRange(report.getLastRow() + 1, 1, 1,2);
-      range.setValues([[contracts[j].name, contracts[j].cost]]);
+      range = report.getRange(report.getLastRow() + 1, 1, 1,3);
+      range.setValues([[contracts[j].name, Math.abs(contracts[j].cost), (contracts[j].type == 1 ? 'Приход' : 'Расход')]]);
       range.setNumberFormats(format);
       totalProject += contracts[j].cost;
     }
@@ -561,19 +561,19 @@ function createReportForOrg(data){
     totalProject += employeesPayment;
     totalReport += totalProject;
 
-    range = report.getRange(report.getLastRow() + 1, 1, 1,2);
-    range.setValues([['Выплаты сотрудникам', Math.abs(employeesPayment)]]);
+    range = report.getRange(report.getLastRow() + 1, 1, 1,3);
+    range.setValues([['Выплаты сотрудникам', Math.abs(employeesPayment),'']]);
     range.setNumberFormats(format);
     range.setBackground('#E6E6FA');
 
-    range = report.getRange(report.getLastRow() + 1, 1, 1,2);
-    range.setValues([['Итого по проекту', totalProject]]);
+    range = report.getRange(report.getLastRow() + 1, 1, 1,3);
+    range.setValues([['Итого по проекту', totalProject, '']]);
     range.setNumberFormats(format);
     range.setBackground('#FFF273');
   }
 
-  range = report.getRange(report.getLastRow() + 1, 1, 1,2);
-  range.setValues([['Итого по организации', totalReport]]);
+  range = report.getRange(report.getLastRow() + 1, 1, 1,3);
+  range.setValues([['Итого по организации', totalReport, '']]);
   range.setNumberFormats(format);
   range.setBackground('#FFCF73');
 
@@ -676,7 +676,7 @@ function getContracts(value){
     result[i-1] = {};
     result[i-1].id = value[i][0];
     result[i-1].type = value[i][4];
-    result[i-1].name = value[i][1] + '-' + value[i][2];
+    result[i-1].name = value[i][1] + ' - ' + value[i][2];
     result[i-1].dateFrom = new Date(value[i][8]);
     result[i-1].cost = value[i][7];
   }
@@ -710,7 +710,7 @@ function getProjectsInPeriod(projects, from, to){
   * @param {date} from - дата начала
   * @param {date} to - дата окончания
 */
-function getContractsForProject(provision, allContracts, projectId, from, to){
+function getContractsForProject(provision, allContracts, projectId, from, to, type){
   var projContracts = [],
       result,
       i = 0;
@@ -726,11 +726,25 @@ function getContractsForProject(provision, allContracts, projectId, from, to){
 
 //  Logger.log(result);
 
-  
+  if(type != 'opt'){
+    result = getContractsByType(result, type);
+  } 
 
   return getContractsCost(result, projectId, provision);
 }
 
+function getContractsByType(value, type){
+  var array = value,
+      result = [];
+  
+  array.forEach(function(item, i){
+    if(item.type == type){
+      result.push(item);
+    }
+  });
+  
+  return result;
+}
 
 function getContractsCost(value, projectId, provision){
   var i = 0,

@@ -21,6 +21,12 @@
         <input id="monthFrom" name="dateFrom" class="w3-input w3-border w3-margin-bottom" type="text"/>
         <lable for="monthTo">Месяц по</lable>
         <input id="monthTo" name="dateTo" class="w3-input w3-border w3-margin-bottom" type="text"/>
+        <lable for="type">Тип договора</lable>
+        <select id="type" name="type" class="w3-input w3-border w3-margin-bottom" type="text">
+          <option value="opt">Выберите тип(необязательно)</option>
+          <option value="1">Приход</option>
+          <option value="-1">Расход</option>
+        </select>
         <input id="fileName" name="fileName" class="w3-input w3-border w3-margin-bottom" type="text" placeholder="Название файла..."/>
         <input  id="createBtn" type="button" value="Создать отчет" class="w3-button w3-teal w3-medium" onclick=createReport(this.form)>
       </form>
@@ -83,6 +89,7 @@
             monthTo: form.monthTo.value,
             dateFrom: from,
             dateTo: new Date(to.getFullYear(), to.getMonth() + 1, 0),
+            type: form.type.value
           }
         
           console.log(report_data);

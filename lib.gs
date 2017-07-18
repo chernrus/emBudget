@@ -102,6 +102,11 @@ function getList(mode, type, depID){
       }
     }
   }
+  else if(type == 'contract') {
+    for(var i = 1; i < tableValue.length; i++) {
+        list.push({id: tableValue[i][0], name: tableValue[i][1], num: tableValue[i][2]});
+    }
+  } 
   else {
     for(var i = 1; i < tableValue.length; i++) {
       if(tableValue[i][2]) {

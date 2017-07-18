@@ -23,7 +23,7 @@
             <option>Разработка</option>
             <option>Тестирование</option>
           </select><br>
-          <label for="ncontract">№ Контракта</label>
+          <label for="ncontract">№ Договора</label><br>
           <!-- <input id="ncontract" name="ncontract" type="text" class="w3-input w3-border w3-margin-bottom"/> -->
           <select id="ncontract" name="ncontract" class="w3-select w3-margin-bottom"></select>
           <!--<div class="clearfix w3-margin-bottom"></div>-->
@@ -48,10 +48,10 @@
             <thead>
               <tr class="w3-light-grey">
                 <th>#</th>
-                <th type="name" class="0">Контракт<span class="arrow"></span></th>
+                <th type="name" class="0">Договор<span class="arrow"></span></th>
                 <th type="project" class="0">Проект<span class="arrow"></span></th>
-                <th type="time" class="0">Планируемые<br>трудозатраты<span class="arrow"></span></th>
-                <th type="cost" class="0">Суммы затрат<span class="arrow"></span></th>
+                <th type="time" class="0">Планируемые<br>трудозатраты (часы)<span class="arrow"></span></th>
+                <th type="cost" class="0">Суммы затрат (руб)<span class="arrow"></span></th>
                 <th>Ред-ть</th>
               </tr>
             </thead>
@@ -87,6 +87,16 @@
         </div>
       </div>
     </div>
+    <div class="success-message w3-panel w3-bottom w3-pale-green">
+      <span onclick="this.parentElement.style.display='none'"
+      class="w3-button w3-pale-green w3-large w3-display-topright">&times;</span>
+      <h4></h4>
+    </div>
+    <div class="error-message w3-panel w3-bottom w3-pale-red">
+      <span onclick="this.parentElement.style.display='none'"
+      class="w3-button w3-pale-red w3-large w3-display-topright" >&times;</span>
+      <h4></h4>
+    </div>
     <?!= include('sort'); ?>
     <script defer>
       var mode = document.querySelector('#modeSelect'),
@@ -118,11 +128,11 @@
       }
       
       function addContracts(contractList){
-        var str = '<option value="opt">Выберите контракт</option>',
+        var str = '<option value="opt">Выберите договор</option>',
             i = 0;
               
         for(i; i < contractList.length; i++) {
-          str += '<option value="' + contractList[i].id + '">' + contractList[i].name + '</option>';
+          str += '<option value="' + contractList[i].id + '">' + contractList[i].name + '&nbsp;(' + contractList[i].num + ')' +  '</option>';
         }
         contractsData.innerHTML = str;
          $("#ncontract").chosen({});
@@ -371,13 +381,28 @@
       }
       
       function onEditSuccess(message){
-        var editMessage = document.querySelector("#edit_message");
+        var successMessage = document.querySelector(".success-message"),
+            errorMessage = document.querySelector(".error-message");
         if(message.status == 'Success') {
-          showMessage(editMessage, message.text,'green');
+          showEditMessage(successMessage, message.text);
         } 
         else {
-          showMessage(editMessage, message.text, 'red');
+          showEditMessage(errorMessage, message.text);
         }    
+      }
+      
+      function showEditMessage(container, message) {
+        container.style.display = 'block';
+        container.style.transition = 'opacity 0s';
+        container.style.opacity = 1;
+        container.querySelector('h4').innerHTML = message;
+        setTimeout(function(){
+          container.style.transition = 'opacity 5s';
+          container.style.opacity = 0.1;
+        }, 5000);
+        setTimeout(function(){
+          container.style.display = 'none';
+        }, 10000);
       }
     </script>
 

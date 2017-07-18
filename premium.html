@@ -420,5 +420,34 @@
         }    
       }
     </script>
+    <script>
+      function filterTable(){
+        var search, filter, table, tr, td, i,
+            project, month, premium, empl, department;
+        search = document.getElementById("inputSearch");
+        filter = search.value.toUpperCase();
+        table = document.getElementById("table-container");
+        tr = table.getElementsByTagName("tr");
+        
+        for (i = 1; i < tr.length; i++) {
+          
+          empl =  tr[i].getElementsByTagName("td")[1].innerHTML.toUpperCase();
+          department = tr[i].getElementsByTagName("td")[2].innerHTML.toUpperCase();
+          project = tr[i].querySelectorAll('td select')[0].value.toUpperCase();
+          month = tr[i].querySelectorAll('td input')[0].value.toUpperCase();
+          premium = tr[i].querySelectorAll("td input")[1].value.toUpperCase();
+          
+          if (project || empl || department || month || premium) {
+            if (project.indexOf(filter) > -1 || month.indexOf(filter) > -1 || 
+            department.indexOf(filter) > -1 || empl.indexOf(filter) > -1 || premium.indexOf(filter) > -1) {
+              tr[i].style.display = "";
+            } 
+            else {
+              tr[i].style.display = "none";
+            }
+          }       
+        }
+      }
+    </script>
   </body>
 </html>

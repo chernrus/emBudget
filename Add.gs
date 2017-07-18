@@ -13,16 +13,27 @@ function createDepartment(depForm) {
   depForm.id = value[0][6]+1;
   
   if(checkOverlap(depForm.name, value)) {
-    return MESSAGE.overlap_dep;
+    return {
+      status: 'error',
+      field: 'name',
+      text: MESSAGE.overlap_dep
+    };
   } 
   else if(depForm.name == '') {
-    return MESSAGE.empty_dep;
+    return {
+      status: 'error',
+      field: 'name',
+      text: MESSAGE.empty_dep
+    };
   } 
   else { 
     sheet.getRange(sheet.getLastRow()+1, 1, 1, 3).setValues([[depForm.id, depForm.name, true]]);
     sheet.getRange(sheet.getLastRow(), 2).setNumberFormat('@');
     sheet.getRange(1, 7).setValue(depForm.id);
-    return MESSAGE.success;
+    return {
+      status: 'Success',
+      text: MESSAGE.success
+    }
   }
 }
 
