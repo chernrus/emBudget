@@ -86,6 +86,7 @@
 
     </div>
     <?!= include('sort'); ?>
+    <?!= include('form_validation'); ?>
     <script>
       function send(form){
         var projectInfo = {
@@ -94,6 +95,13 @@
           dateFrom: form.dateFrom.value,
           dateTo: form.dateTo.value
         };
+        
+        try{
+          resetFormStyles(form);//
+        } catch(e){
+          alert(e);
+        }
+        
         document.querySelector("#sendBtn").disabled = true;
         google.script.run.withSuccessHandler(onCreateSuccess).addProject(projectInfo);
       }
@@ -103,11 +111,12 @@
       */
       function onCreateSuccess(message){
         var createMessage = document.querySelector('#create_message');
-        if(message == 'Success') {
-          showMessage(createMessage, 'Запись успешно добавлена!','green');
+        if(message.status == 'Success') {
+          showMessage(createMessage, message.text,'green');
           resetInput();
         } else {
-          showMessage(createMessage, message, 'red');
+          showMessage(createMessage, message.text, 'red');
+          changeFieldColor(message.field);
         }
 
         document.querySelector("#sendBtn").disabled = false;
@@ -121,7 +130,7 @@
 
       function resetInput(){
         document.querySelector("#projectForm").reset();
-//        getTableValue();
+        getTableValue();
       }
     </script>
     <script>

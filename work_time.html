@@ -77,6 +77,7 @@
 
     </div>
     <?!= include('sort');?>
+    <?!= include('form_validation');?>
     <script>
 
       $("#dateFrom").datepicker({
@@ -165,6 +166,12 @@
         
         console.log(note);
         
+        try{
+          resetFormStyles(form);//
+        } catch(e){
+          alert(e);
+        }
+        
         document.querySelector("#sendBtn").disabled = true;
         google.script.run.withSuccessHandler(onCreateSuccess).addWorkTime(note);
       }
@@ -174,12 +181,13 @@
 */
       function onCreateSuccess(message){
         var createMessage = document.querySelector('#create_message');
-        if(message == 'Success') {
-          showMessage(createMessage, 'Запись успешно добавлена!','green');
+        if(message.status == 'Success') {
+          showMessage(createMessage, message.text,'green');
           resetInput();
         } 
         else {
-          showMessage(createMessage, message, 'red');
+          showMessage(createMessage, message.text, 'red');
+          changeFieldColor(message.field);
         }    
       
         document.querySelector("#sendBtn").disabled = false;

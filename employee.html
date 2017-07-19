@@ -87,6 +87,7 @@
       
     </div>
     <?!= include('sort'); ?>
+    <?!= include('form_validation'); ?>
     <script>
       var mode = document.querySelector('#mode-select'),
           table_value = [],
@@ -131,26 +132,32 @@
           department: form.department.value,
         };
           
-        console.log(note);
+        try{
+          resetFormStyles(form);//
+        } catch(e){
+          alert(e);
+        }
+        
         document.querySelector('#sendBtn').disabled = true;
         try {
-          google.script.run.withSuccessHandler(onCreateSuccess).addEmployee(note);
+          google.script.run.withSuccessHandler(onCreateSuccess).withFailureHandler(onFailure).addEmployee(note);
         } catch (e) {
           alert(e);
         }
       }
-      
+
 /*
   Callback вывод сообщения статуса (успех/неуспех) - после отправки addEmployee()
 */
       function onCreateSuccess(message){
         var createMessage = document.querySelector('#create_message');
-        if(message == 'Success') {
+        if(message.status == 'Success') {
           showMessage(createMessage, 'Запись успешно добавлена!','green');
           resetInput();
           getTableValue();
         } else {
-          showMessage(createMessage, message, 'red');
+          showMessage(createMessage, message.text, 'red');
+          changeFieldColor(message.field);//
         }    
         
         document.querySelector("#sendBtn").disabled = false;
@@ -164,6 +171,10 @@
       function resetInput(){
         document.querySelector("#employeeForm").reset();
       }
+      
+      function onFailure(error){
+        alert("onFailure: " + error);
+      }  
     </script>
     <script>
      
@@ -183,13 +194,11 @@
       document.querySelector('.confirm-date').addEventListener('click', setDate);
                
       function getTableValue(){
-      console.log(mode.value);
          google.script.run.withSuccessHandler(renderTable).getEmplTable(mode.value);
       }   
    
       function renderTable(_table_value){
-        console.log(_table_value);
-         console.log('--');
+
         table_value = JSON.parse(_table_value);
         var table_container = document.querySelector('#table-container tbody'),
             html = '',

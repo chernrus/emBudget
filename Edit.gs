@@ -402,7 +402,7 @@ function getName(id, table){
 //}
 
 /*
-  Редактирование и просмотр контрактов
+  Редактирование и просмотр договоров
   ------------------------------------
 */
 
@@ -417,7 +417,7 @@ function getContractValue(_mode){
 }
 
 /**
-* Создание объекта таблицы для отображения контрактов
+* Создание объекта таблицы для отображения договоров
 */
 function createContractModel(data) {
   var i = 0,
@@ -468,7 +468,7 @@ function saveContract(data){
   else {
     return {
       status: 'Error',
-      text: 'Полная стоимость контракта меньше чем по Обеспечению!'
+      text: 'Полная стоимость договора меньше чем по Обеспечению!'
     }
   }
 }
@@ -492,7 +492,7 @@ function checkProvisionTime(id, cost){
 }
 
 /*
-  Редактирование и удаление обеспечения контрактов
+  Редактирование и удаление обеспечения договоров
   ------------------------------------------------
 */
 
@@ -539,13 +539,13 @@ function saveProvision(data){
   if (checkExcessTime(data.time, data.contract_id, provision_table, EM.mode, data.row-1)) {
     return {
       status: 'Error',
-      text: MESSAGE.excessTime
+      text: MESSAGE.excess_time
     }
   }
   else if (checkExcessCost(data.cost, data.contract_id, provision_table, EM.mode, data.row-1)) {
     return {
       status: 'Error',
-      text: MESSAGE.excessCost
+      text: MESSAGE.excess_cost
     }
   }
   else {
@@ -593,7 +593,7 @@ function getPaymentTable(_mode) {
       value = sheet.getDataRange().getValues(),
       table_value = createPaymentModel(value);
 
-  return table_value.sort(compareStr);
+  return JSON.stringify(table_value.sort(compareStr));
 }
 
 function savePayment(data) {

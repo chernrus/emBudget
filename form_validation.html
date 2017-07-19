@@ -1,0 +1,28 @@
+<script>
+  function resetFormStyles(form) {
+    var inputs = form.querySelectorAll('input'),
+      selects = form.querySelectorAll('select'),
+      messages = form.querySelectorAll('.validation-error-message');
+      i = 0;
+    for(i = 0; i < messages.length; i++) {
+      messages[i].innerHTML = '&nbsp;';
+    }
+    
+    for(i = 0; i < (inputs.length - 1); i++) {
+      inputs[i].style.backgroundColor = 'white';
+    }
+    
+    for(i = 1; i < selects.length; i++) {
+      selects[i].style.backgroundColor = '#ccc';
+    }
+  }
+  
+  function changeFieldColor(field) {
+    document.getElementById(field).style.backgroundColor = '#ffe6e6';
+  }
+  
+  function settErrorMessage(field, message) {
+    document.querySelector('.validation-error-message.'+field).innerHTML = message;
+  }
+</script>
+

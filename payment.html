@@ -40,13 +40,28 @@
       <div class="edit-panel w3-threequarter">
 
         <div id="table-container">
-          Идет загрузка таблицы ...
+          <table class="w3-table-all w3-centered">
+            <thead>
+              <tr class="w3-light-grey">
+              <th>#</th>
+              <th type="name" class="0">Сотрудник<span class="arrow"></span></th>
+              <th type="white_pay" class="0">ЗП белая<span class="arrow"></span></th>
+              <th type="gray_pay" class="0">ЗП серая<span class="arrow"></span></th>
+              <th type="ante" class="0">ЗП/час<span class="arrow"></span></th>
+              <th>Редактировать</th>
+            </thead>
+            <tbody>
+              <tr><td>Идет загрузка таблицы ...</td><tr>
+            </tbody>
+          </table>
         </div>
         <div class="info-panel">
           <div id="edit_message"></div>
         </div>
       </div>
-    </div>  
+    </div>
+    <?!= include('sort'); ?>
+    <?!= include('form_validation'); ?>
     <script>
       /*
         Формирование выпадающего списка отделов
@@ -82,7 +97,12 @@
           grayPay: form.grayPay.value
         };
           
-        console.log(note);
+        try{
+          resetFormStyles(form);//
+        } catch(e){
+          alert(e);
+        }
+        
         document.querySelector('#sendBtn').disabled = true;
         try {
           google.script.run.withSuccessHandler(onCreateSuccess).addPayment(note);
@@ -96,11 +116,12 @@
       */
       function onCreateSuccess(message){
         var createMessage = document.querySelector('#create_message');
-        if(message == 'Success') {
-          showMessage(createMessage, 'Запись успешно добавлена!','green');
+        if(message.status == 'Success') {
+          showMessage(createMessage, message.text,'green');
           resetInput();
         } else {
-          showMessage(createMessage, message, 'red');
+          showMessage(createMessage, message.text, 'red');
+          changeFieldColor(message.field);//
         }    
         
         document.querySelector("#sendBtn").disabled = false;
@@ -129,6 +150,7 @@
       })
       
       getTableValue();
+      createSort();
       
       var table_value = [], params = [];
       
@@ -138,11 +160,11 @@
       }
       
       function renderTable(_table_value){
-        table_value = _table_value;
+        table_value = JSON.parse(_table_value);
         
         console.log(table_value);
         
-        var table_container = document.getElementById('table-container'),
+         var table_container = document.querySelector('#table-container tbody'),
                 html = '',
                 i = 0,
                 input_name = '',
@@ -150,8 +172,7 @@
                 input_gray = '',
                 coordinate = '';
             
-         html +='<table class="w3-table-all">' +
-                '<thead><tr class="w3-light-grey"><th>#</th><th>Сотрудник</th><th>ЗП белая</th><th>ЗП серая</th><th>Ставка</th><th>Редактировать</th></thead><tbody>';
+        table_container.innerHTML = '<tr><td>Идет загрузка...</td><tr>';
         
          for(i = 0; i < table_value.length; i++) {
            input_name = table_value[i].name;
@@ -180,26 +201,8 @@
       
       function createObserver(table){
         var i = 0,
-            edit_cell = table.querySelectorAll('.edit-cell'),
-            head = document.querySelectorAll('tr th'),
-            nameHead = head[1],
-            whiteHead = head[2],
-            grayHead = head[3],
-            anteHead = head[4];
-            
-        nameHead.onclick = function(){
-          renderTable(table_value.sort(compareByName));
-        }
-        whiteHead.onclick = function(){
-          renderTable(table_value.sort(compareByWPay));
-        }
-        grayHead.onclick = function(){
-          renderTable(table_value.sort(compareByGPay));
-        }
-        anteHead.onclick = function(){
-          renderTable(table_value.sort(compareByAnte));
-        }
-        
+            edit_cell = table.querySelectorAll('.edit-cell');
+
         for(i = 0; i < edit_cell.length; i++ ){
           edit_cell[i].addEventListener('click', function(event){
             var row_num;

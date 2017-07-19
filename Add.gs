@@ -57,23 +57,38 @@ function addEmployee(employeeForm) {
   }; 
   
   if(employeeInfo.name == '') {
-    return MESSAGE.empty_empl;
+    return {
+      status: 'error',
+      text: MESSAGE.empty_empl,
+      field: 'name'
+    }; 
   } 
   else if(employeeInfo.phone == '' || !checkPhone(employeeInfo.phone)) {
-    return MESSAGE.wrong_phone;
+    return {
+      status: 'error',
+      text: MESSAGE.wrong_phone,
+      field: 'phone'
+    };
   } 
   else if(employeeInfo.department == 'opt') {
-    return MESSAGE.choose_dep;
+    return {
+      status: 'error',
+      text: MESSAGE.choose_dep,
+      field: 'department'
+    };
   } 
   else {
     
     employees.getRange(employees.getLastRow()+1, 1, 1, 5).setValues(
-      [[employeeInfo.id, employeeInfo.name, employeeInfo.phone, employeeInfo.department, true]]
+      [[employeeInfo.id, employeeInfo.name, employeeInfo.phone, employeeInfo.department, 'Работает']]
     );
     employees.getRange(employees.getLastRow(), 2).setNumberFormat('@');
     employees.getRange(1,9).setValue(employeeInfo.id);
     
-    return MESSAGE.success;
+    return {
+      status: 'Success',
+      text: MESSAGE.success,
+    };
   }
 }
 
@@ -86,16 +101,31 @@ function addPayment(paymentInfo) {
 
   
   if(paymentInfo.employee == 'opt') {
-    return MESSAGE.choose_empl;
+    return {
+      status: 'error',
+      text: MESSAGE.choose_empl,
+      field: 'employee'
+    };
   } 
   else if(!paymentInfo.whitePay) {
-    return MESSAGE.empty_wpay;
+    return {
+      status: 'error',
+      text: MESSAGE.empty_wpay,
+      field: 'whitePay'
+    };
   } 
   else if(!paymentInfo.grayPay) {
-    return MESSAGE.empty_gpay;
+    return {
+      status: 'error',
+      text: MESSAGE.empty_gpay,
+      field: 'grayPay'
+    };
   }
   else if(checkExistence(paymentInfo.employee, paymentSheet, paymentInfo.whitePay, paymentInfo.grayPay)){
-    return 'ЗП сотрудника изменена!';
+    return {
+      status: 'Success',
+      text: 'ЗП сотрудника изменена!'
+    };
   } 
   else {
     
@@ -104,7 +134,10 @@ function addPayment(paymentInfo) {
     );
     paymentSheet.getRange(paymentSheet.getLastRow(), 2, 1, 2).setNumberFormats(FORMAT);
     
-    return MESSAGE.success;
+    return {
+      status: 'Success',
+      text: 'Запись успешно добавлена!'
+    };
   }
 
 }
@@ -137,25 +170,53 @@ function addWorkTime(workTimeInfo) {
   workTimeInfo.id = value[0][9] + 1;
   
   if(workTimeInfo.project == 'opt') {
-    return MESSAGE.choose_prj;
+    return {
+      status: 'error',
+      text: MESSAGE.choose_prj,
+      field: 'project'
+    };
   } 
   else if(!checkDate(workTimeInfo.dateFrom)) {
-    return MESSAGE.wrong_dfrom;
+    return {
+      status: 'error',
+      text: MESSAGE.wrong_dfrom,
+      field: 'dateFrom'
+    };
   } 
   else if(!checkDate(workTimeInfo.dateTo)) {
-    return MESSAGE.wrong_dto;
+    return {
+      status: 'error',
+      text: MESSAGE.wrong_dto,
+      field: 'dateTo'
+    }
   } 
   else if(!compareDatesWtime(workTimeInfo.dateFrom, workTimeInfo.dateTo)) {
-    return MESSAGE.overlap_date;
+    return {
+      status: 'error',
+      text: MESSAGE.overlap_date,
+      field: 'dateTo'
+    };
   } 
   else if(workTimeInfo.department == 'opt') {
-    return MESSAGE.choose_dep;
+    return {
+      status: 'error',
+      text: MESSAGE.choose_dep,
+      field: 'department'
+    };
   } 
   else if(workTimeInfo.employee == 'opt') {
-    return MESSAGE.choose_empl;
+    return {
+      status: 'error',
+      text: MESSAGE.choose_empl,
+      field: 'employee'
+    };
   } 
   else if(!workTimeInfo.spendTime) {
-    return MESSAGE.empty_time;
+    return {
+      status: 'error',
+      text: MESSAGE.empty_time,
+      field: 'spendTime'
+    };
   } 
   else {
     
@@ -165,7 +226,11 @@ function addWorkTime(workTimeInfo) {
     workTime.getRange(workTime.getLastRow(), 7).setNumberFormat('0.0');
     workTime.getRange(1, 10).setValue(workTimeInfo.id);
     workTime.getRange(workTime.getLastRow(), 8).setValue(true);
-    return MESSAGE.success;
+    
+    return {
+      status: 'Success',
+      text: 'Запись успешно добавлена'
+    }
   }
 }
 
@@ -177,16 +242,32 @@ function addProject(projectInfo) {
   projectInfo.id = value[0][8] + 1;
   
   if(projectInfo.name == '') {
-    return MESSAGE.empty_prj;
+    return {
+      status: 'error',
+      text: MESSAGE.empty_prj,
+      field: 'name'
+    };
   }
   else if(checkOverlap(projectInfo.name, value)) {
-    return MESSAGE.overlap_prj;
+    return {
+      status: 'error',
+      field: 'name',
+      text: MESSAGE.overlap_prj
+    };
   }
   else if(!projectInfo.dateFrom) {
-    return MESSAGE.empty_dfrom;
+    return {
+      status: 'error',
+      field: 'dateFrom',
+      text: MESSAGE.empty_dfrom
+    };
   }
   else if(projectInfo.dateTo && !compareDates(projectInfo.dateFrom, projectInfo.dateTo)) {
-    return MESSAGE.overlap_date;
+    return {
+      status: 'error',
+      field: 'dateTo',
+      text: MESSAGE.overlap_date
+    };
   }
   else {
     sheet.getRange(sheet.getLastRow()+1, 1, 1, 5).setValues(
@@ -195,12 +276,15 @@ function addProject(projectInfo) {
     sheet.getRange(sheet.getLastRow(), 2).setNumberFormat('@');
     sheet.getRange(1, 9).setValue(projectInfo.id);
     
-    return MESSAGE.success;
+    return {
+      status: 'Success',
+      text: 'Запись успешно добавлена'
+    };
   }  
 }
 
 /*
-  Добавление контракта
+  Добавление договора
 */
 function addContract(contractInfo){
   var ss = SpreadsheetApp.openById(FILEID.contract);
@@ -215,34 +299,74 @@ function addContract(contractInfo){
   
   
   if(contractInfo.name == '' ) {
-    return 'Введите название контракта';
+    return {
+      status: 'error',
+      text: 'Введите название договора',
+      field: 'name'
+    };
   }
   else if(contractInfo.ncontract == '' ) {
-    return MESSAGE.empty_contr;
+    return {
+      status: 'error',
+      text:  MESSAGE.empty_contr,
+      field: 'ncontract'
+    };
   } 
   else if(checkOverlap(contractInfo.name, value)) {
-    return  MESSAGE.overlap_contr;
+    return {
+      status: 'error',
+      text:  MESSAGE.overlap_contr,
+      field: 'name'
+    }; 
   } 
   else if(contractInfo.type == 'opt') {
-    return  MESSAGE.choose_type;
+    return {
+      status: 'error',
+      text: MESSAGE.choose_type,
+      field: 'type'
+    };  
   } 
   else if(contractInfo.status == 'opt') {
-    return  MESSAGE.choose_status;
+    return {
+      status: 'error',
+      text: MESSAGE.choose_status,
+      field: 'status'
+    };  
   } 
   else if(!contractInfo.planTime) {
-    return MESSAGE.empty_planTime;
+    return {
+      status: 'error',
+      text: MESSAGE.empty_planTime,
+      field: 'planTime'
+    }; 
   } 
   else if(!contractInfo.fullCost) {
-    return MESSAGE.empty_fullCost;
+    return {
+      status: 'error',
+      text: MESSAGE.empty_fullCost,
+      field: 'fullCost'
+    }; 
   } 
   else if(!contractInfo.dateFrom) {
-    return MESSAGE.wrong_dfrom;
+    return {
+      status: 'error',
+      text: MESSAGE.wrong_dfrom,
+      field: 'dateFrom'
+    };
   } 
   else if(!contractInfo.dateTo) {
-    return MESSAGE.wrong_dto;
+    return {
+      status: 'error',
+      text: MESSAGE.wrong_dto,
+      field: 'dateTo'
+    };
   } 
   else if(compareDates(contractInfo.dateFrom, contractInfo.dateTo)) {
-    return MESSAGE.overlap_date;
+    return {
+      status: 'error',
+      text: MESSAGE.overlap_date,
+      field: 'dateTo'
+    };
   } 
   else {
     Logger.log(contractInfo.project);
@@ -277,7 +401,10 @@ function addContract(contractInfo){
       });
     }
     
-    return MESSAGE.success;
+    return {
+      status: 'Success',
+      text: 'Запись успешно добавлена'
+    }
   } 
 }
 
@@ -291,7 +418,7 @@ function checkOverlapConract(name, value) {
 }
 
 /*
-  Обеспечение контрактов
+  Обеспечение договоров
 */
 function addProvision(provisionInfo){
   Logger.log(provisionInfo);
@@ -307,23 +434,47 @@ function addProvision(provisionInfo){
   
 //  Logger.log(checkExcess(provisionInfo.planTime, provisionInfo.ncontract, value, provisionInfo.mode));
   
-  if(provisionInfo.ncontract == ''){
-    return MESSAGE.empty_contr;
+  if(provisionInfo.ncontract == 'opt'){
+    return {
+      status: 'error',
+      text: MESSAGE.empty_contr,
+      field: 'ncontract'
+    };
   } 
   else if(provisionInfo.projectId == 'opt'){
-    return MESSAGE.choose_prj;
+    return {
+      status: 'error',
+      text: MESSAGE.choose_prj,
+      field: 'project'
+    };
   } 
   else if(!provisionInfo.planTime){
-    return  MESSAGE.empty_planTime;
+    return {
+      status: 'error',
+      text: MESSAGE.empty_planTime,
+      field: 'planTime'
+    };
   } 
   else if(checkExcessTime(provisionInfo.planTime, provisionInfo.ncontract, value, provisionInfo.mode)){
-    return  MESSAGE.excess_time;
+    return {
+      status: 'error',
+      text: MESSAGE.excess_time,
+      field: 'planTime'
+    };
   } 
   else if(!provisionInfo.projectCost){
-    return MESSAGE.empty_projectCost;
+    return {
+      status: 'error',
+      text: MESSAGE.empty_projectCost,
+      field: 'projectCost'
+    };
   } 
   else if(checkExcessCost(provisionInfo.projectCost, provisionInfo.ncontract, value, provisionInfo.mode)){
-    return  MESSAGE.excess_cost;
+    return {
+      status: 'error',
+      text: MESSAGE.excess_cost,
+      field: 'projectCost'
+    };
   } 
   else {
     
@@ -337,12 +488,15 @@ function addProvision(provisionInfo){
     );
     sheet.getRange(sheet.getLastRow(), 1, 1, 4).setNumberFormats(cellsFormat);
     
-    return MESSAGE.success;
+    return {
+      status: 'Success',
+      text: 'Запись успешно добавлена!'
+    };
   } 
 }
 
 /*
-  Получение id контракта, для последующей работы с контрактами
+  Получение id договора, для последующей работы с договорами
 */
 function getId(n, mode) {
   var ss = SpreadsheetApp.openById(FILEID.contract);
@@ -359,7 +513,7 @@ function getId(n, mode) {
 }
 
 /**
- Проверка на наличие контракта
+ Проверка на наличие договора
 */
 function checkExistance(ncontract, mode) {
   var ss = SpreadsheetApp.openById(FILEID.contract);
@@ -536,22 +690,42 @@ function addPremium(data) {
   premiumInfo.id = value[0][8] + 1;
   
   if(premiumInfo.department == defOption) {
-    return MESSAGE.choose_dep
+    return {
+      status: 'error',
+      text: MESSAGE.choose_dep,
+      field: 'department'
+    };
   }
   else if(premiumInfo.employee == defOption) {
-    return MESSAGE.choose_empl
+    return {
+      status: 'error',
+      text: MESSAGE.choose_empl,
+      field: 'employee'
+    };
   }
   else if(premiumInfo.project == defOption) {
-    return MESSAGE.choose_prj
+    return {
+      status: 'error',
+      text: MESSAGE.choose_prj,
+      field: 'project'
+    }; 
   }
   else if(!premiumInfo.monthDate) {
-    return MESSAGE.choose_month;
+    return {
+      status: 'error',
+      text: MESSAGE.choose_month,
+      field: 'month'
+    };
   }
   else if(!premiumInfo.premium || Object.prototype.toString.call(+premiumInfo.premium) !== '[object Number]') {
-    return MESSAGE.empty_premium;
+    return {
+      status: 'error',
+      text: MESSAGE.empty_premium,
+      field: 'premium'
+    }; 
   }
   else {
-    Logger.log(premiumInfo.month);  
+//    Logger.log(formatDate(premiumInfo.monthDate));  
 //    premiumInfo.month = new Date(premiumInfo.month);
 //    Logger.log(premiumInfo.month);
     premium.getRange(premium.getLastRow()+1, 1, 1, 6).setValues(
@@ -564,11 +738,13 @@ function addPremium(data) {
         premiumInfo.premium
       ]]
     );
-    premium.getRange(premium.getLastRow(), 6).setNumberFormat('0.00');
+    premium.getRange(premium.getLastRow(), 5, 1, 2).setNumberFormats([['dd.mm.yyyy', '0.00']]);
     premium.getRange(1, 9).setValue(premiumInfo.id);
     premium.getRange(premium.getLastRow(), 7).setValue(true);
     
-    return MESSAGE.success;
+    return {
+      status: 'Success',
+      text: 'Запись успешно добавлена!'
+    }
   }
 }
-

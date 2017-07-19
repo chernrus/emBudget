@@ -19,54 +19,91 @@
       <div class="form-container w3-container w3-card-2 w3-padding-32 w3-white" style="width: 848px;">
         <form id="contractsForm">
           <div class="w3-half w3-margin-right" style="width: 400px;">
-            <label for="modeSelect">Режим</label>
-            <select id="modeSelect" name="mode" class="w3-select w3-margin-bottom">
-              <option>Разработка</option>
-              <option>Тестирование</option>
-            </select><br>
-            <label for="name">Название договора</label>
-            <input id="name" name="name" type="text" class="w3-input w3-border w3-margin-bottom"/>
-            <label for="ncontract">№ договора</label>
-            <input id="ncontract" name="ncontract" type="text" class="w3-input w3-border w3-margin-bottom"/>
-            <label for="organization">Организация по договору</label>
-            <input id="organization" name="organization" type="text" class="w3-input w3-border w3-margin-bottom"/>
-            <label for="type">Тип договора</label>
-            <select id="type" name="type" class="w3-select w3-margin-bottom">
-              <option value="opt">Выберите тип</option>
-              <option value="1">Приход</option>
-              <option value="-1">Расход</option>
-            </select>
-            <label for="status">Статус договора</label>
-            <select id="status" name="status" class="w3-select w3-margin-bottom">
-              <option value="opt">Выберите статус</option>
-              <option>Новый</option>
-              <option>На исполнение</option>
-              <option>Исполнен</option>
-            </select>
+            <label class="form-input-modeSelect">
+              <span class="lable-text">Планируемые трудозатраты</span>
+              <select id="modeSelect" name="mode" class="w3-select">
+                <option>Разработка</option>
+                <option>Тестирование</option>
+              </select>
+              <div class="validation-error-message modeSelect">&nbsp;</div>
+            </label>
+            <label class="form-input-name">
+              <span class="lable-text">Название договора</span>
+              <input id="name" name="name" type="text" class="w3-input w3-border"/>
+              <div class="validation-error-message name">&nbsp;</div>
+            </label>
+            <label class="form-input-ncontract">
+              <span class="lable-text">№ договора</span>
+              <input id="ncontract" name="ncontract" type="text" class="w3-input w3-border"/>
+              <div class="validation-error-message ncontract">&nbsp;</div>
+            </label>
+            <label class="form-input-organization">
+              <span class="lable-text">Организация по договору</span>
+              <input id="organization" name="organization" type="text" class="w3-input w3-border"/>
+              <div class="validation-error-message organization">&nbsp;</div>
+            </label>
+            <label class="form-input-type">
+              <span class="lable-text">Тип договора</span>
+              <select id="type" name="type" class="w3-select">
+                <option value="opt">Выберите тип</option>
+                <option value="1">Приход</option>
+                <option value="-1">Расход</option>
+              </select>
+              <div class="validation-error-message type">&nbsp;</div>
+            </label>
+            <label class="form-input-status">
+              <span class="lable-text">Статус договора</span>
+              <select id="status" name="status" class="w3-select">
+                <option value="opt">Выберите статус</option>
+                <option>Новый</option>
+                <option>На исполнение</option>
+                <option>Исполнен</option>
+              </select>
+              <div class="validation-error-message status">&nbsp;</div>
+            </label>
+            
           </div>
           <div class="w3-half"  style="width: 400px;">
-            <label for="planTime">Планируемые трудозатраты</label>
-            <input id="planTime" name="planTime" type="number" class="w3-input w3-border w3-margin-bottom"/>
-            <label for="fullCost">Полная цена (руб)</label>
-            <input id="fullCost" name="fullCost" type="number" class="w3-input w3-border w3-margin-bottom"/>
-            <label for="dateFrom">Дата начала</label>
-            <input id="dateFrom" name="dateFrom" type="text" class="datepicker-here w3-input w3-border w3-margin-bottom" readonly/>
-            <label for="dateTo">Дата окончания</label>
-            <input id="dateTo" name="dateTo" type="text" class="datepicker-here w3-input w3-border w3-margin-bottom" readonly/>
-            <label for="document">Документы</label>
-            <input id="document" name="document" type="text" class="w3-input w3-border w3-margin-bottom"/>
-            <label for="type">Проект</label>
-            <select id="project" name="project" class="w3-select w3-margin-bottom" disabled>
-              <option value="opt">Выберите проект</option>
-            </select>
-            <input id="sendBtn" type="button" value="Отправить" class="w3-button w3-teal w3-medium w3-margin-bottom w3-right" onClick="send(this.form)"/>
+            <label class="form-input-planTime">
+              <span class="lable-text">Планируемые трудозатраты</span>
+              <input id="planTime" name="planTime" type="number" class="w3-input w3-border"/>
+              <div class="validation-error-message planTime">&nbsp;</div>
+            </label>
+            <label class="form-input-fullCost">
+              <span class="lable-text">Полная цена (руб)</span>
+              <input id="fullCost" name="fullCost" type="number" class="w3-input w3-border"/>
+              <div class="validation-error-message fullCost">&nbsp;</div>
+            </label>
+            <label class="form-input-dateFrom">
+              <span class="lable-text">Дата начала</span>
+              <input id="dateFrom" name="dateFrom" type="text" class="datepicker-here w3-input w3-border" readonly/>
+              <div class="validation-error-message dateFrom">&nbsp;</div>
+            </label>
+            <label class="form-input-dateTo">
+              <span class="lable-text">Дата окончания</span>
+              <input id="dateTo" name="dateTo" type="text" class="datepicker-here w3-input w3-border" readonly/>
+              <div class="validation-error-message dateTo">&nbsp;</div>
+            </label>
+            <label class="form-input-document">
+              <span class="lable-text">Документы</span>
+              <input id="document" name="document" type="text" class="w3-input w3-border"/>
+              <div class="validation-error-message document">&nbsp;</div>
+            </label>
+            <label class="form-input-project">
+              <span class="lable-text">Проект</span>
+              <select id="project" name="project" class="w3-select" disabled>
+                <option value="opt">Выберите проект</option>
+              </select>
+              <div class="validation-error-message project">&nbsp;</div>
+            </label>
+            <input id="sendBtn" type="button" value="Отправить" class="w3-button w3-teal w3-medium w3-right" onClick="send(this.form)"/>
           </div>
         </form>
         <div class="info-panel">
           <div id="create_message"></div>
         </div>
       </div>
-      <div class="edit-panel">
+      <div class="edit-panel edit-contract">
         
         <div id="table-container">
           <table class="contract w3-table-all">
@@ -99,6 +136,7 @@
 
     </div>
     <?!= include('sort'); ?>
+    <?!= include('form_validation'); ?>
     <script>
       getProjectList();
       
@@ -160,7 +198,11 @@
           project: form.project.value
         };
         
-        console.log(note);
+        try{
+          resetFormStyles(form);//
+        } catch(e){
+          alert(e);
+        }
         
         document.querySelector("#sendBtn").disabled = true;
         google.script.run.withSuccessHandler(onCreateSuccess).addContract(note);
@@ -171,12 +213,14 @@
 */
       function onCreateSuccess(message){
         var createMessage = document.querySelector('#create_message');
-        if(message == 'Success') {
-          showMessage(createMessage, 'Запись успешно добавлена!','green');
+        if(message.status == 'Success') {
+          showMessage(createMessage, message.text,'green');
           resetInput();
         } 
         else {
-          showMessage(createMessage, message, 'red');
+//          showMessage(createMessage, message.text, 'red');
+          changeFieldColor(message.field);
+          settErrorMessage(message.field, message.text);
         }    
       
         document.querySelector("#sendBtn").disabled = false;

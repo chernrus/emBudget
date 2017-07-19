@@ -65,7 +65,7 @@ function getDataForReport(data){
         prjs: [['@', '0.0', '0.00', '0.00', '0.00', '0.00', '0.00', '0.00']]
       };
   
-  Logger.log(allProjects);
+//  Logger.log(allProjects);
   
   if(report_info.depId == 'opt') {
      departments = allDepartments.sort(compareStr);
@@ -153,9 +153,9 @@ function getDataForReport(data){
           'ЗП серая(факт руб)', 'Премия (руб)', 'Налоги (руб)']]);
 
         total_projects = getProjectsByEmployee(employees[j].id, departments[i].id,  periods[k].date, workTimeValue, allProjects);
-        Logger.log(total_projects);
+         Logger.log(total_projects);
         sorted_total_projects = total_projects.length > 0 ? total_projects.sort(compareStr) : [];
-
+        Logger.log(sorted_total_projects);
 
         for(var n = 0; n < sorted_total_projects.length; n++){
           range = sheet.getRange(sheet.getLastRow() + 1, 1, 1,8);
@@ -288,7 +288,6 @@ function getProjectsByEmployee(e_id, d_id, month, wTime_value, allProjects){
       }
       if(flag){
         cost = getPay(e_id);
-
         projects.push({
           name: getProjectName(allProjects, wTime_value[i][1]),
           id: wTime_value[i][1],
@@ -308,6 +307,7 @@ function getProjectsByEmployee(e_id, d_id, month, wTime_value, allProjects){
 }
 
 function getPremiumForReport(d_id, e_id, p_id, month) {
+//  Logger.log(d_id + '--' + e_id + '--' + p_id + '--' + month);
   var value = TABLES.premium,
       i = 0,
       premium = 0;
@@ -315,12 +315,13 @@ function getPremiumForReport(d_id, e_id, p_id, month) {
   for(i = 1; i < value.length; i++) {
 //    Logger.log(value[i][1] + '--' + value[i][2] + '--' + value[i][3] + '--' + value[i][4]);
 //    Logger.log(d_id + '**' + e_id + '**' + p_id + '**' + month);
-//    Logger.log(value[i][1] === d_id && value[i][2] === e_id && 
-//       value[i][3] === p_id && value[i][4].getMonth() === month.getMonth() &&
-//       value[i][4].getFullYear() === month.getFullYear());
-    if(value[i][1] === d_id && value[i][2] === e_id && 
-       value[i][3] === p_id && value[i][4].getMonth() === month.getMonth() &&
-       value[i][4].getFullYear() === month.getFullYear()){
+//    Logger.log(value[i][1] === d_id)// && value[i][2] == e_id && value[i][3] == p_id)
+////    Logger.log(value[i][1] === d_id && value[i][2] === e_id && 
+////       value[i][3] === p_id && value[i][4].getMonth() === month.getMonth() &&
+////       value[i][4].getFullYear() === month.getFullYear());
+    if(value[i][1] == d_id && value[i][2] == e_id && 
+       value[i][3] == p_id && value[i][4].getMonth() == month.getMonth() &&
+       value[i][4].getFullYear() == month.getFullYear()){
       return value[i][5];
     }
   }
@@ -544,7 +545,7 @@ function createReportForOrg(data){
     range.setFontWeight("bold");
     range.setHorizontalAlignment("center");
 
-//  Получаем контракты по проекту и периоду отчета
+//  Получаем договоры по проекту и периоду отчета
     contracts = getContractsForProject(provision, allContracts, projects[i].id, params.dateFrom, params.dateTo, params.type);
     totalProject = 0;
 //    Logger.log(allContracts);
@@ -623,19 +624,19 @@ function getProjectsInProvision(projects, provisions) {
       i = 0,
       j = 0;
   
-  Logger.log(provisions);
+//  Logger.log(provisions);
   for(i = 0; i < projects.length; i++) {
-    Logger.log(i);
+//    Logger.log(i);
     for(j = 1; j < provisions.length; j++) {
       if(projects[i].id == provisions[j][1]){
-        Logger.log(projects[i].id + '==' + provisions[j][1])
+//        Logger.log(projects[i].id + '==' + provisions[j][1])
         result.push(projects[i]);
         break;
       }
     }
   }
-  Logger.log(projects);
-  Logger.log(result);
+//  Logger.log(projects);
+//  Logger.log(result);
   return result;
 }
 
@@ -665,8 +666,8 @@ function getProjectsInProvision(projects, provisions) {
 //}
 
 /**
-  * Получение данных из таблицы "Контракты"
-  * @param {Array} value - двумерный массив из полученный из документа "Контракты"
+  * Получение данных из таблицы "Договоры"
+  * @param {Array} value - двумерный массив из полученный из документа "Договоры"
 */
 function getContracts(value){
   var i = 0,
@@ -703,9 +704,9 @@ function getProjectsInPeriod(projects, from, to){
 }
 
 /**
-  * Контракты по проекту
-  * @param {Array} provision - обеспечение контрактов
-  * @param {Array} allContracts - все контракты организации
+  * договоры по проекту
+  * @param {Array} provision - обеспечение договоров
+  * @param {Array} allContracts - все договоры организации
   * @param {string} projectId - id проекта
   * @param {date} from - дата начала
   * @param {date} to - дата окончания
@@ -762,9 +763,9 @@ function getContractsCost(value, projectId, provision){
 }
 
 /**
-  * Контракты удовлетворяющие периоду
-  * @param {Array} projContracts - контракты по проекту
-  * @param {Array} allContracts - все контракты организации
+  * Договоры удовлетворяющие периоду
+  * @param {Array} projContracts - договоры по проекту
+  * @param {Array} allContracts - все договоры организации
   * @param {date} from - дата начала
   * @param {date} to - дата окончания
 */
@@ -787,7 +788,7 @@ function contractsForPeriod(projContracts, allContracts, from, to){
 }
 
 /**
-  * Контракты удовлетворяющие периоду
+  * Договоры удовлетворяющие периоду
   * @param {string} prj_id - id проекта
   * @param {date} from - дата начала
   * @param {date} to - дата окончания
