@@ -20,18 +20,31 @@
     
       <div class="form-container w3-container w3-card-2 w3-padding-32 w3-white w3-quarter">
         <form id="employeeForm">
-          <select id="mode-select" class="w3-select w3-margin-bottom" name="mode" style="width:50%">
-            <option>Разработка</option>
-            <option>Тестирование</option>
-          </select><br>
-          <lable for="name">Полное имя</lable>
-          <input id="name" name="name" type="text" class="w3-input w3-border w3-margin-bottom"/>
-          <lable for="phone">Телефон</lable>
-          <input id="phone" name="phone" type="text" placeholder="+7(000) 000-0000" class="w3-input w3-border w3-margin-bottom"/>
-          <lable for="department">Отдел</lable>
-          <select id="department" name="department" class="w3-input w3-margin-bottom" disabled>
-            <option value="opt">Выберите отдел</option>
-          </select>
+          <label class="form-input-modeSelect">
+            <span class="lable-text">Режим</span>
+            <select id="mode-select" name="mode" class="w3-select">
+              <option>Разработка</option>
+              <option>Тестирование</option>
+            </select>
+            <div class="validation-error-message modeSelect">&nbsp;</div>
+          </label>
+          <label class="form-input-name">
+            <span class="lable-text">Полное имя</span>
+            <input id="name" name="name" type="text" class="w3-input w3-border"/>
+            <div class="validation-error-message name">&nbsp;</div>
+          </label>
+          <label class="form-input-phone">
+            <span class="lable-text">Телефон</span>
+            <input id="phone" name="phone" type="text" placeholder="+7(000) 000-0000" class="w3-input w3-border"/>
+            <div class="validation-error-message phone">&nbsp;</div>
+          </label>
+          <label class="form-input-department">
+            <span class="lable-text">Отдел</span>
+            <select id="department" name="department" class="w3-input" disabled>
+              <option value="opt">Выберите отдел</option>
+            </select>
+            <div class="validation-error-message department">&nbsp;</div>
+          </label>
           <input id="sendBtn" type="button" value="Отправить" class="w3-button w3-teal w3-medium w3-margin-bottom" onClick="send(this.form)"/>
         </form>
         <div class="info-panel">
@@ -40,6 +53,12 @@
       </div>
       
       <div class="edit-panel w3-container w3-threequarter">
+        <div class="filter">
+          <input id="inputSearch" type=text class="w3-input w3-half" placeholder="Фильтр.." title="Введите ключевое слово" onkeyup="filterTable()">
+          <div class="info-panel w3-half">
+            <div id="edit_message"></div>
+          </div>
+        </div>
         <div id="table-container">
           <table class="w3-table-all w3-centered">
             <thead>
@@ -55,10 +74,6 @@
               <tr><td>Идет загрузка таблицы ...</td><tr>
             </tbody>
           </table>
-        </div>
-        
-        <div class="info-panel">
-          <div id="edit_message"></div>
         </div>
         
         <div id="time-modal" class="w3-modal">
@@ -156,8 +171,8 @@
           resetInput();
           getTableValue();
         } else {
-          showMessage(createMessage, message.text, 'red');
-          changeFieldColor(message.field);//
+          changeFieldColor(message.field);
+          setErrorMessage(message.field, message.text);
         }    
         
         document.querySelector("#sendBtn").disabled = false;
@@ -442,6 +457,30 @@
       }
     
     </script>
+    <script>
+      function filterTable(){
+        var search, filter, table, tr, td, i,
+            project, from, to, depart, empl, hours;
+        search = document.getElementById("inputSearch");
+        filter = search.value.toUpperCase();
+        table = document.getElementById("table-container");
+        tr = table.getElementsByTagName("tr");
+        
+        for (i = 1; i < tr.length; i++) {
+          depart = tr[i].querySelectorAll("td select")[0].options[tr[i].querySelectorAll("td select")[0].selectedIndex].text.toUpperCase();
+          empl = tr[i].querySelectorAll("td input")[0].value.toUpperCase();  
+        
+          if (project || from || to || depart || empl || hours) {
+            if (depart.indexOf(filter) > -1 || empl.indexOf(filter) > -1) {
+              tr[i].style.display = "";
+            } else {
+              tr[i].style.display = "none";
+            }
+          }       
+        }
+      }
+    </script>
+    
   </body>
 </html>
 

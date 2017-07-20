@@ -20,7 +20,7 @@
         <form id="contractsForm">
           <div class="w3-half w3-margin-right" style="width: 400px;">
             <label class="form-input-modeSelect">
-              <span class="lable-text">Планируемые трудозатраты</span>
+              <span class="lable-text">Режим</span>
               <select id="modeSelect" name="mode" class="w3-select">
                 <option>Разработка</option>
                 <option>Тестирование</option>
@@ -220,7 +220,7 @@
         else {
 //          showMessage(createMessage, message.text, 'red');
           changeFieldColor(message.field);
-          settErrorMessage(message.field, message.text);
+          setErrorMessage(message.field, message.text);
         }    
       
         document.querySelector("#sendBtn").disabled = false;

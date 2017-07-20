@@ -262,7 +262,7 @@ function addProject(projectInfo) {
       text: MESSAGE.empty_dfrom
     };
   }
-  else if(projectInfo.dateTo && !compareDates(projectInfo.dateFrom, projectInfo.dateTo)) {
+  else if(projectInfo.dateTo && compareDates(projectInfo.dateFrom, projectInfo.dateTo)) {
     return {
       status: 'error',
       field: 'dateTo',
@@ -738,7 +738,7 @@ function addPremium(data) {
         premiumInfo.premium
       ]]
     );
-    premium.getRange(premium.getLastRow(), 5, 1, 2).setNumberFormats([['dd.mm.yyyy', '0.00']]);
+    premium.getRange(premium.getLastRow(), 1, 1, 2).setNumberFormats([['@', '@', '@', '@', 'dd.mm.yyyy', '0.00']]);
     premium.getRange(1, 9).setValue(premiumInfo.id);
     premium.getRange(premium.getLastRow(), 7).setValue(true);
     
@@ -747,4 +747,78 @@ function addPremium(data) {
       text: 'Запись успешно добавлена!'
     }
   }
+}
+
+function getActualProjects(_params){
+//  mode, date, empl_id
+  var params = JSON.parse(_params),
+      projects = getList(mode, 'project'),
+      workTime = openDocument(FILEID.workTime, params.mode).getDataRange().getValues(),
+      actualList = [],
+      emplId = params.empl_id,
+      premiumDate = new Date(params.date),
+      rowDate, rowEmpl;
+      
+  if(params.empl_id == 'opt'){
+    return {
+      status: 'error',
+      text: 'Выберите сотрудника, затем дату!',
+      field: 'employee'
+    }
+  } 
+  else if(!params.date){
+    return {
+      status: 'error',
+      text: 'Выберите дату!',
+      field: 'month'
+    }
+  }
+  else {
+
+    workTime.forEach(function(row, i){
+      rowDate = new Date(row[2]);
+      rowEmpl = row[5];
+      rowProj = row[1];
+      
+      if(rowDate.getMonth() == premiumDate.getMonth() && rowEmpl == emplId) {
+        actualList.push(rowProj);
+      }
+    });
+    
+    actualList = unique(actualList);
+    
+    actualList = addProjectsName(actualList, projects);
+    Logger.log(actualList);
+    
+    return {
+      status: 'Success', 
+      text: 'OK', 
+      list: actualList
+    };
+  }
+  
+  
+}
+
+function unique(array) {
+    var a = [];
+    for ( i = 0; i < array.length; i++ ) {
+        var current = array[i];
+        if (a.indexOf(current) < 0) a.push(current);
+    }
+    return a;
+}
+
+function addProjectsName(array, projects) {
+  var i = 0, j = 0,
+    result = [];
+  
+  for(i = 0; i < array.length; i++) {
+    for(j = 0; j < projects.length; j++){
+      if(array[i] == projects[j].id) {
+        result.push(projects[j]);
+      }
+    }  
+  }
+  return result;
 }
